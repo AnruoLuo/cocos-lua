@@ -319,8 +319,7 @@ cls.callback {
     TAG_MAKER = 'makeScheduleCallbackTag(#-1)',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = 2,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -329,8 +328,7 @@ cls.callback {
     TAG_MAKER = 'makeScheduleCallbackTag(#1)',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = 2,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -339,8 +337,7 @@ cls.callback {
     TAG_MAKER = 'makeScheduleCallbackTag("")',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
     TAG_STORE = 1,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -349,8 +346,7 @@ cls.callback {
     TAG_MAKER = 'makeScheduleCallbackTag("")',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     timeScale
@@ -393,43 +389,15 @@ cls.funcs [[
     bool hasEventListener(const EventListener::ListenerID &listenerID)
     EventDispatcher()
 ]]
-cls.func('addCustomEventListener', [[{
-    void *callback_store_obj = nullptr;
-    auto self = olua_checkobj<cocos2d::EventDispatcher>(L, 1);
-    std::string eventName = olua_checkstring(L, 2);
-    auto listener = new cocos2d::EventListenerCustom();
-    listener->autorelease();
-    olua_push_cppobj<cocos2d::EventListenerCustom>(L, listener);
-    callback_store_obj = listener;
-    std::string func = olua_setcallback(L, callback_store_obj, eventName.c_str(), 3, OLUA_TAG_NEW);
-    listener->init(eventName, [callback_store_obj, func](cocos2d::EventCustom *event) {
-        lua_State *L = olua_mainthread();
-        int top = lua_gettop(L);
-        size_t last = olua_push_objpool(L);
-        olua_enable_objpool(L);
-        olua_push_cppobj<cocos2d::EventCustom>(L, event);
-        olua_disable_objpool(L);
-        olua_callback(L, callback_store_obj, func.c_str(), 1);
-
-        //pop stack value
-        olua_pop_objpool(L, last);
-
-        lua_settop(L, top);
-    });
-
-    // EventListenerCustom* EventDispatcher::addCustomEventListener(const std::string &eventName, const std::function<void(EventCustom*)>& callback)
-    //  {
-    //      EventListenerCustom *listener = EventListenerCustom::create(eventName, callback);
-    //      addEventListenerWithFixedPriority(listener, 1);
-    //      return listener;
-    //  }
-    self->addEventListenerWithFixedPriority(listener, 1);
-    lua_pushvalue(L, 4);
-
-    olua_addref(L, 1, "listeners", -1, OLUA_MODE_MULTIPLE);
-
-    return 1;
-}]])
+cls.callback {
+    FUNCS =  {
+        '@addref(listeners |) cocos2d::EventListenerCustom *addCustomEventListener(const std::string &eventName, @local const std::function<void (EventCustom *)> &callback)'
+    },
+    TAG_MAKER = '(#1)',
+    TAG_MODE = 'OLUA_TAG_NEW',
+    TAG_STORE = "return",
+    TAG_SCOPE = 'object',
+}
 cls.inject('removeEventListenersForTarget', {
     BEFORE = [[
         bool recursive = false;
@@ -515,10 +483,8 @@ cls.callback {
     },
     TAG_MAKER = 'listener',
     TAG_MODE = 'OLUA_TAG_NEW',
-    TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
-    CPPFUNC = 'init',
+    TAG_STORE = "return",
+    TAG_SCOPE = 'object',
 }
 M.CLASSES[#M.CLASSES + 1] = cls
 
@@ -545,10 +511,8 @@ cls.callback {
     },
     TAG_MAKER = 'listener',
     TAG_MODE = 'OLUA_TAG_NEW',
-    TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
-    CPPFUNC = 'init',
+    TAG_STORE = "return",
+    TAG_SCOPE = 'object',
 }
 M.CLASSES[#M.CLASSES + 1] = cls
 
@@ -1114,8 +1078,7 @@ cls.callback {
     TAG_MAKER = 'makeAudioEngineFinishCallbackTag(#1)',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -1124,8 +1087,7 @@ cls.callback {
     TAG_MAKER = 'makeAudioEngineFinishCallbackTag(-1)',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -1134,8 +1096,7 @@ cls.callback {
     TAG_MAKER = 'makeAudioEngineFinishCallbackTag(-1)',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -1144,8 +1105,7 @@ cls.callback {
     TAG_MAKER = 'makeAudioEngineFinishCallbackTag(#1)',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1155,8 +1115,7 @@ cls.callback {
     TAG_MAKER = 'preload',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.inject('uncache', {
     BEFORE = [[
@@ -1324,8 +1283,7 @@ cls.callback {
     TAG_MAKER = 'StringFromFile',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1335,8 +1293,7 @@ cls.callback {
     TAG_MAKER = 'DataFromFile',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1346,8 +1303,7 @@ cls.callback {
     TAG_MAKER = 'writeStringToFile',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1357,8 +1313,7 @@ cls.callback {
     TAG_MAKER = 'writeDataToFile',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1368,8 +1323,7 @@ cls.callback {
     TAG_MAKER = 'writeValueMapToFile',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1379,8 +1333,7 @@ cls.callback {
     TAG_MAKER = 'writeValueVectorToFile',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1390,8 +1343,7 @@ cls.callback {
     TAG_MAKER = 'isFileExist',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1401,8 +1353,7 @@ cls.callback {
     TAG_MAKER = 'isDirectoryExist',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1412,8 +1363,7 @@ cls.callback {
     TAG_MAKER = 'createDirectory',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1423,8 +1373,7 @@ cls.callback {
     TAG_MAKER = 'removeDirectory',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1434,8 +1383,7 @@ cls.callback {
     TAG_MAKER = 'removeFile',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1447,8 +1395,7 @@ cls.callback {
     TAG_MAKER = 'renameFile',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1458,8 +1405,7 @@ cls.callback {
     TAG_MAKER = 'FileSize',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1468,8 +1414,7 @@ cls.callback {
     TAG_MAKER = 'listFilesAsync',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -1478,8 +1423,7 @@ cls.callback {
     TAG_MAKER = 'listFilesRecursivelyAsync',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.props [[
     instance
@@ -1913,8 +1857,7 @@ cls.callback {
     TAG_MAKER = 'BeforeCallback',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -1923,8 +1866,7 @@ cls.callback {
     TAG_MAKER = 'AfterCallback',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -1933,8 +1875,7 @@ cls.callback {
     TAG_MAKER = 'BeforeCallback',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -1943,8 +1884,7 @@ cls.callback {
     TAG_MAKER = 'AfterCallback',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     vertexCapacity
@@ -2006,8 +1946,7 @@ cls.callback {
     TAG_MAKER = {'makeTextureCacheCallbackTag(#1)', 'makeTextureCacheCallbackTag(#-1)'},
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -2016,8 +1955,7 @@ cls.callback {
     TAG_MAKER = 'makeTextureCacheCallbackTag(#1)',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2026,8 +1964,7 @@ cls.callback {
     TAG_MAKER = 'makeTextureCacheCallbackTag("")',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     etC1AlphaFileSuffix
@@ -2587,8 +2524,7 @@ cls.callback {
     TAG_MAKER = 'OnEnterCallback',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2597,8 +2533,7 @@ cls.callback {
     TAG_MAKER = 'OnEnterCallback',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2607,8 +2542,7 @@ cls.callback {
     TAG_MAKER = 'OnExitCallback',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2617,8 +2551,7 @@ cls.callback {
     TAG_MAKER = 'OnExitCallback',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2627,8 +2560,7 @@ cls.callback {
     TAG_MAKER = 'OnEnterTransitionDidFinishCallback',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2637,8 +2569,7 @@ cls.callback {
     TAG_MAKER = 'OnEnterTransitionDidFinishCallback',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2647,8 +2578,7 @@ cls.callback {
     TAG_MAKER = 'OnExitTransitionDidStartCallback',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2657,8 +2587,7 @@ cls.callback {
     TAG_MAKER = 'OnExitTransitionDidStartCallback',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2667,8 +2596,7 @@ cls.callback {
     TAG_MAKER = 'makeScheduleCallbackTag(#-1)',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -2679,8 +2607,7 @@ cls.callback {
     TAG_MAKER = 'makeScheduleCallbackTag(#-1)',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2689,8 +2616,7 @@ cls.callback {
     TAG_MAKER = 'makeScheduleCallbackTag(#1)',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2699,8 +2625,7 @@ cls.callback {
     TAG_MAKER = 'makeScheduleCallbackTag("")',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.inject('removeFromParent', {
     BEFORE = [[
@@ -3239,8 +3164,7 @@ cls.callback {
     TAG_MAKER = 'saveToFile',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -3250,8 +3174,7 @@ cls.callback {
     TAG_MAKER = 'saveToFile',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.callback {
     FUNCS =  {
@@ -3260,8 +3183,7 @@ cls.callback {
     TAG_MAKER = 'newImage',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'once',
-    REMOVE = false,
+    TAG_SCOPE = 'once',
 }
 cls.alias('begin', 'beginVisit')
 cls.alias('end', 'endVisit')
@@ -4999,8 +4921,7 @@ cls.callback {
     TAG_MAKER = 'move',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     navMeshAgentComponentName

@@ -1012,8 +1012,7 @@ cls.callback {
     TAG_MAKER = '(#1)',
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -1022,8 +1021,7 @@ cls.callback {
     TAG_MAKER = '(#1)',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     armature

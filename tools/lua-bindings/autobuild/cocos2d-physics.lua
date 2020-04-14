@@ -642,8 +642,7 @@ cls.callback {
     TAG_MAKER = 'PreUpdateCallback',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -652,8 +651,7 @@ cls.callback {
     TAG_MAKER = 'PostUpdateCallback',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -662,8 +660,7 @@ cls.callback {
     TAG_MAKER = 'rayCast',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -672,8 +669,7 @@ cls.callback {
     TAG_MAKER = 'queryRect',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -682,8 +678,7 @@ cls.callback {
     TAG_MAKER = 'queryPoint',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     allBodies

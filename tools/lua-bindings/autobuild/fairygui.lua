@@ -138,8 +138,7 @@ cls.callback {
     TAG_MAKER = {'makeListenerTag(L, #1, 0)', 'makeListenerTag(L, #1, 4)'},
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -149,8 +148,7 @@ cls.callback {
     TAG_MAKER = {'makeListenerTag(L, #1, 0)', 'makeListenerTag(L, #1, 3)'},
     TAG_MODE = {'OLUA_TAG_SUBSTARTWITH', 'OLUA_TAG_SUBEQUAL'},
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -159,8 +157,7 @@ cls.callback {
     TAG_MAKER = 'makeListenerTag(L, -1, 0)',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 M.CLASSES[#M.CLASSES + 1] = cls
 
@@ -237,8 +234,7 @@ cls.callback {
     TAG_MAKER = 'CaptureCallback',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     recentInput
@@ -424,8 +420,7 @@ cls.callback {
     TAG_MAKER = 'onUpdate',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -434,8 +429,7 @@ cls.callback {
     TAG_MAKER = 'onStart',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -444,8 +438,7 @@ cls.callback {
     TAG_MAKER = 'onComplete',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -454,8 +447,7 @@ cls.callback {
     TAG_MAKER = 'onComplete1',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     delay
@@ -974,8 +966,7 @@ cls.callback {
     TAG_MAKER = {'makeListenerTag(L, fairygui::UIEventType::Click, 0)', 'makeListenerTag(L, fairygui::UIEventType::Click, 3)'},
     TAG_MODE = 'OLUA_TAG_NEW',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -984,8 +975,7 @@ cls.callback {
     TAG_MAKER = 'makeListenerTag(L, fairygui::UIEventType::Click, 2)',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.inject('center', {
     BEFORE = [[
@@ -1623,8 +1613,7 @@ cls.callback {
     TAG_MAKER = 'PlaySettings',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     playing
@@ -1750,9 +1739,6 @@ M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'fairygui::PopupMenu'
 cls.SUPERCLS = "cocos2d::Ref"
-cls.CHUNK = [[
-static int _fairygui_PopupMenu_addItemAt(lua_State *L);
-]]
 cls.funcs [[
     static fairygui::PopupMenu *create(const std::string &resourceURL)
     static fairygui::PopupMenu *create()
@@ -1773,45 +1759,24 @@ cls.funcs [[
     @delref(children ~ parent)@addref(children | parent) void show()
     @delref(children ~ parent)@addref(children | parent) void show(fairygui::GObject *target, fairygui::PopupDirection dir)
 ]]
-cls.func('addItemAt', [[{
-    fairygui::PopupMenu *self = (fairygui::PopupMenu *)olua_toobj(L, 1, "fgui.PopupMenu");
-    std::string caption = olua_checkstring(L, 2);
-    int index = (int)olua_checkinteger(L, 3);
-    fairygui::GButton *ret = (fairygui::GButton *)self->addItemAt(caption, index, nullptr);
-
-    void *callback_store_obj = (void *)ret;
-    std::string tag = makeListenerTag(L, fairygui::UIEventType::ClickMenu, 0);
-    std::string func = olua_setcallback(L, callback_store_obj, tag.c_str(), 4, OLUA_TAG_NEW);
-    std::function<void(fairygui::EventContext *)> callback = [callback_store_obj, func, tag](fairygui::EventContext *event) {
-        lua_State *L = olua_mainthread();
-        int top = lua_gettop(L);
-        size_t last = olua_push_objpool(L);
-        olua_enable_objpool(L);
-        olua_push_cppobj<fairygui::EventContext>(L, event);
-        olua_disable_objpool(L);
-        olua_callback(L, callback_store_obj, func.c_str(), 1);
-
-        //pop stack value
-        olua_pop_objpool(L, last);
-
-        lua_settop(L, top);
-    };
-
-    ret->addEventListener(fairygui::UIEventType::ClickMenu, callback);
-
-    olua_push_cppobj<fairygui::GButton>(L, ret);
-    olua_push_cppobj<fairygui::GComponent>(L, ret->getParent());
-    olua_addref(L, -1, "children", -2, OLUA_MODE_MULTIPLE);
-    lua_pop(L, 1);
-
-    return 1;
-}]])
-cls.func('addItem', [[{
-    fairygui::PopupMenu *self = (fairygui::PopupMenu *)olua_toobj(L, 1, "fgui.PopupMenu");
-    lua_pushinteger(L, self->getList()->numChildren());
-    lua_insert(L, -2);
-    return _fairygui_PopupMenu_addItemAt(L);
-}]])
+cls.callback {
+    FUNCS =  {
+        '@addref(children | parent) fairygui::GButton *addItem(const std::string &caption, @local std::function<void (EventContext *)> callback)'
+    },
+    TAG_MAKER = 'makeListenerTag(L, fairygui::UIEventType::ClickMenu, 0)',
+    TAG_MODE = 'OLUA_TAG_REPLACE',
+    TAG_STORE = "return",
+    TAG_SCOPE = 'object',
+}
+cls.callback {
+    FUNCS =  {
+        '@addref(children | parent) fairygui::GButton *addItemAt(const std::string &caption, int index, @local std::function<void (EventContext *)> callback)'
+    },
+    TAG_MAKER = 'makeListenerTag(L, fairygui::UIEventType::ClickMenu, 0)',
+    TAG_MODE = 'OLUA_TAG_REPLACE',
+    TAG_STORE = "return",
+    TAG_SCOPE = 'object',
+}
 cls.inject('show', {
     BEFORE = [[
         fairygui::GRoot *root = fairygui::UIRoot;
@@ -1833,6 +1798,18 @@ cls.inject('removeItem', {
     ]],
 })
 cls.inject('clearItems', {
+    BEFORE = [[
+        olua_push_cppobj<fairygui::GList>(L, self->getList());
+        int parent = lua_gettop(L);
+    ]],
+})
+cls.inject('addItem', {
+    BEFORE = [[
+        olua_push_cppobj<fairygui::GList>(L, self->getList());
+        int parent = lua_gettop(L);
+    ]],
+})
+cls.inject('addItemAt', {
     BEFORE = [[
         olua_push_cppobj<fairygui::GList>(L, self->getList());
         int parent = lua_gettop(L);
@@ -2047,8 +2024,7 @@ cls.callback {
     TAG_MAKER = 'play',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2058,8 +2034,7 @@ cls.callback {
     TAG_MAKER = 'playReverse',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2068,8 +2043,7 @@ cls.callback {
     TAG_MAKER = '("hook." + #1)',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2078,8 +2052,7 @@ cls.callback {
     TAG_MAKER = '("hook.")',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = true,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     owner
@@ -2130,8 +2103,7 @@ cls.callback {
     TAG_MAKER = 'load',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.props [[
     fileName
@@ -2288,8 +2260,7 @@ cls.callback {
     TAG_MAKER = 'PackageItemExtension',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 cls.callback {
     FUNCS =  {
@@ -2298,8 +2269,7 @@ cls.callback {
     TAG_MAKER = 'LoaderExtension',
     TAG_MODE = 'OLUA_TAG_REPLACE',
     TAG_STORE = nil,
-    LIFECYCLE = 'default',
-    REMOVE = false,
+    TAG_SCOPE = 'object',
 }
 M.CLASSES[#M.CLASSES + 1] = cls
 

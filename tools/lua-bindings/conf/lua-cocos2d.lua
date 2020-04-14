@@ -109,20 +109,17 @@ Scheduler.CALLBACK {
     TAG_MAKER = 'makeScheduleCallbackTag(#1)',
     TAG_STORE = 2, -- 2th void *target
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
-    REMOVE = true,
 }
 Scheduler.CALLBACK {
     NAME = 'unscheduleAllForTarget',
     TAG_MAKER = 'makeScheduleCallbackTag("")',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
     TAG_STORE = 1, -- 1th void *target
-    REMOVE = true,
 }
 Scheduler.CALLBACK {
     NAME = 'unscheduleAll',
     TAG_MAKER = 'makeScheduleCallbackTag("")',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
-    REMOVE = true,
 }
 Scheduler.FUNC('scheduleUpdate', [[
 {
@@ -146,10 +143,17 @@ Scheduler.FUNC('scheduleUpdate', [[
 local EventDispatcher = typeconf 'cocos2d::EventDispatcher'
 EventDispatcher.ATTR('addEventListenerWithSceneGraphPriority', {ARG1 = '@addref(listeners | 3)'})
 EventDispatcher.ATTR('addEventListenerWithFixedPriority', {ARG1 = '@addref(listeners |)'})
+EventDispatcher.ATTR('addCustomEventListener', {RET = '@addref(listeners |)'})
 EventDispatcher.ATTR('removeCustomEventListeners', {RET = '@delref(listeners ~)'})
 EventDispatcher.ATTR('removeEventListener', {RET = '@delref(listeners ~)'})
 EventDispatcher.ATTR('removeEventListenersForType', {RET = '@delref(listeners ~)'})
 EventDispatcher.ATTR('removeAllEventListeners', {RET = '@delref(listeners ~)'})
+EventDispatcher.CALLBACK {
+    NAME = 'addCustomEventListener',
+    TAG_MAKER = '(#1)',
+    TAG_STORE = 'return',
+    TAG_MODE = 'OLUA_TAG_NEW',
+}
 EventDispatcher.CHUNK = [[
 static void doRemoveEventListenersForTarget(lua_State *L, cocos2d::Node *target, bool recursive, const char *refname)
 {
@@ -165,44 +169,6 @@ static void doRemoveEventListenersForTarget(lua_State *L, cocos2d::Node *target,
         }
     }
 }]]
-EventDispatcher.FUNC('addCustomEventListener', [[
-{
-    void *callback_store_obj = nullptr;
-    auto self = olua_checkobj<cocos2d::EventDispatcher>(L, 1);
-    std::string eventName = olua_checkstring(L, 2);
-    auto listener = new cocos2d::EventListenerCustom();
-    listener->autorelease();
-    olua_push_cppobj<cocos2d::EventListenerCustom>(L, listener);
-    callback_store_obj = listener;
-    std::string func = olua_setcallback(L, callback_store_obj, eventName.c_str(), 3, OLUA_TAG_NEW);
-    listener->init(eventName, [callback_store_obj, func](cocos2d::EventCustom *event) {
-        lua_State *L = olua_mainthread();
-        int top = lua_gettop(L);
-        size_t last = olua_push_objpool(L);
-        olua_enable_objpool(L);
-        olua_push_cppobj<cocos2d::EventCustom>(L, event);
-        olua_disable_objpool(L);
-        olua_callback(L, callback_store_obj, func.c_str(), 1);
-
-        //pop stack value
-        olua_pop_objpool(L, last);
-
-        lua_settop(L, top);
-    });
-
-    // EventListenerCustom* EventDispatcher::addCustomEventListener(const std::string &eventName, const std::function<void(EventCustom*)>& callback)
-    //  {
-    //      EventListenerCustom *listener = EventListenerCustom::create(eventName, callback);
-    //      addEventListenerWithFixedPriority(listener, 1);
-    //      return listener;
-    //  }
-    self->addEventListenerWithFixedPriority(listener, 1);
-    lua_pushvalue(L, 4);
-
-    olua_addref(L, 1, "listeners", -1, OLUA_MODE_MULTIPLE);
-
-    return 1;
-}]])
 EventDispatcher.INJECT('removeEventListenersForTarget', {
     BEFORE = [[
         bool recursive = false;
@@ -228,7 +194,7 @@ typeconf 'cocos2d::EventListenerCustom'
         NAME = 'create',
         TAG_MAKER = 'listener',
         TAG_MODE = 'OLUA_TAG_NEW',
-        CPPFUNC = 'init',
+        TAG_STORE = 'return',
     }
 
 typeconf 'cocos2d::EventListenerKeyboard'
@@ -238,7 +204,7 @@ typeconf 'cocos2d::EventListenerAcceleration'
         NAME = 'create',
         TAG_MAKER = 'listener',
         TAG_MODE = 'OLUA_TAG_NEW',
-        CPPFUNC = 'init',
+        TAG_STORE = 'return',
     }
 
 typeconf 'cocos2d::EventListenerFocus'
@@ -313,29 +279,26 @@ AudioEngine.CALLBACK {
     NAME = 'stop',
     TAG_MAKER = 'makeAudioEngineFinishCallbackTag(#1)',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
-    REMOVE = true,
 }
 AudioEngine.CALLBACK {
     NAME = 'stopAll',
     TAG_MAKER = 'makeAudioEngineFinishCallbackTag(-1)',
     TAG_MODE = "OLUA_TAG_SUBSTARTWITH",
-    REMOVE = true,
 }
 AudioEngine.CALLBACK {
     NAME = 'uncacheAll',
     TAG_MAKER = 'makeAudioEngineFinishCallbackTag(-1)',
     TAG_MODE = "OLUA_TAG_SUBSTARTWITH",
-    REMOVE = true,
 }
 AudioEngine.CALLBACK {
     NAME = 'setFinishCallback',
     TAG_MAKER = 'makeAudioEngineFinishCallbackTag(#1)',
     NULLABLE = true,
-    LIFECYCLE = 'once',
+    TAG_SCOPE = 'once',
 }
 AudioEngine.CALLBACK {
     NAME = 'preload',
-    LIFECYCLE = 'once',
+    TAG_SCOPE = 'once',
 }
 
 typeconf 'cocos2d::ApplicationProtocol::Platform'
@@ -355,21 +318,21 @@ typeconf 'cocos2d::FileUtils::Status'
 typeconf 'cocos2d::FileUtils'
     .ATTR('getFileDataFromZip', {RET = '@length(arg3)', ARG3 = '@out'})
     .ATTR('listFilesRecursively', {ARG2 = '@out'})
-    .CALLBACK {NAME = "getStringFromFile", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "getDataFromFile", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "writeStringToFile", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "writeDataToFile", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "writeValueMapToFile", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "writeValueVectorToFile", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "isFileExist", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "isDirectoryExist", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "createDirectory", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "removeDirectory", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "removeFile", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "renameFile", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "getFileSize", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "listFilesAsync", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
-    .CALLBACK {NAME = "listFilesRecursivelyAsync", LIFECYCLE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "getStringFromFile", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "getDataFromFile", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "writeStringToFile", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "writeDataToFile", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "writeValueMapToFile", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "writeValueVectorToFile", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "isFileExist", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "isDirectoryExist", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "createDirectory", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "removeDirectory", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "removeFile", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "renameFile", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "getFileSize", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "listFilesAsync", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
+    .CALLBACK {NAME = "listFilesRecursivelyAsync", TAG_SCOPE = 'once', TAG_MODE = 'OLUA_TAG_NEW'}
 
 typeconf 'ResolutionPolicy'
 typeconf 'cocos2d::GLView'
@@ -423,20 +386,18 @@ TextureCache.CALLBACK {
     NAME = 'addImageAsync',
     TAG_MAKER = {'makeTextureCacheCallbackTag(#1)', 'makeTextureCacheCallbackTag(#-1)'},
     TAG_MODE = 'OLUA_TAG_REPLACE',
-    LIFECYCLE = 'once',
+    TAG_SCOPE = 'once',
     LOCAL = false,
 }
 TextureCache.CALLBACK {
     NAME = 'unbindImageAsync',
     TAG_MAKER = 'makeTextureCacheCallbackTag(#1)',
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
-    REMOVE = true,
 }
 TextureCache.CALLBACK {
     NAME = 'unbindAllImageAsync',
     TAG_MAKER = 'makeTextureCacheCallbackTag("")',
     TAG_MODE = 'OLUA_TAG_SUBSTARTWITH',
-    REMOVE = true,
 }
 
 typeconf 'cocos2d::Texture2D'
@@ -667,7 +628,7 @@ Node.CALLBACK {
     NAME = 'scheduleOnce',
     TAG_MAKER = 'makeScheduleCallbackTag(#-1)',
     TAG_MODE = 'OLUA_TAG_REPLACE',
-    LIFECYCLE = 'once',
+    TAG_SCOPE = 'once',
 }
 Node.CALLBACK {
     NAME = 'schedule',
@@ -678,13 +639,11 @@ Node.CALLBACK {
     NAME = 'unschedule',
     TAG_MAKER = "makeScheduleCallbackTag(#1)",
     TAG_MODE = 'OLUA_TAG_SUBEQUAL',
-    REMOVE = true,
 }
 Node.CALLBACK {
     NAME = 'unscheduleAllCallbacks',
     TAG_MAKER = 'makeScheduleCallbackTag("")',
     TAG_MODE = "OLUA_TAG_SUBSTARTWITH",
-    REMOVE = true,
 }
 Node.INJECT({'removeFromParent', 'removeFromParentAndCleanup'}, {
     BEFORE = [[
@@ -731,19 +690,19 @@ local RenderTexture = typeconf 'cocos2d::RenderTexture'
 RenderTexture.CALLBACK {
     NAME = 'saveToFile',
     LOCAL = false,
-    LIFECYCLE = 'once',
+    TAG_SCOPE = 'once',
 }
 RenderTexture.CALLBACK {
     NAME = 'saveToFileAsNonPMA',
     TAG_MAKER = 'saveToFile',
     LOCAL = false,
-    LIFECYCLE = 'once',
+    TAG_SCOPE = 'once',
 }
 RenderTexture.CALLBACK {
     NAME = 'newImage',
     TAG_MODE = 'OLUA_TAG_NEW',
     LOCAL = false,
-    LIFECYCLE = 'once',
+    TAG_SCOPE = 'once',
 }
 RenderTexture.ALIAS('begin', 'beginVisit')
 RenderTexture.ALIAS('end', 'endVisit')
