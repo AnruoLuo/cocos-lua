@@ -283,7 +283,7 @@ static int _cocos2d_NTextureData_get_wrapS(lua_State *L)
 
     olua_to_cppobj(L, 1, (void **)&self, "cc.NTextureData");
 
-    // backend::SamplerAddressMode wrapS
+    // cocos2d::backend::SamplerAddressMode wrapS
     cocos2d::backend::SamplerAddressMode ret = (cocos2d::backend::SamplerAddressMode)self->wrapS;
     int num_ret = olua_push_uint(L, (lua_Unsigned)ret);
 
@@ -302,7 +302,7 @@ static int _cocos2d_NTextureData_set_wrapS(lua_State *L)
     olua_to_cppobj(L, 1, (void **)&self, "cc.NTextureData");
     olua_check_uint(L, 2, &arg1);
 
-    // backend::SamplerAddressMode wrapS
+    // cocos2d::backend::SamplerAddressMode wrapS
     self->wrapS = (cocos2d::backend::SamplerAddressMode)arg1;
 
     olua_endinvoke(L);
@@ -318,7 +318,7 @@ static int _cocos2d_NTextureData_get_wrapT(lua_State *L)
 
     olua_to_cppobj(L, 1, (void **)&self, "cc.NTextureData");
 
-    // backend::SamplerAddressMode wrapT
+    // cocos2d::backend::SamplerAddressMode wrapT
     cocos2d::backend::SamplerAddressMode ret = (cocos2d::backend::SamplerAddressMode)self->wrapT;
     int num_ret = olua_push_uint(L, (lua_Unsigned)ret);
 
@@ -337,7 +337,7 @@ static int _cocos2d_NTextureData_set_wrapT(lua_State *L)
     olua_to_cppobj(L, 1, (void **)&self, "cc.NTextureData");
     olua_check_uint(L, 2, &arg1);
 
-    // backend::SamplerAddressMode wrapT
+    // cocos2d::backend::SamplerAddressMode wrapT
     self->wrapT = (cocos2d::backend::SamplerAddressMode)arg1;
 
     olua_endinvoke(L);
@@ -573,7 +573,7 @@ static int _cocos2d_Mesh_getIndexBuffer(lua_State *L)
 
     olua_to_cppobj(L, 1, (void **)&self, "cc.Mesh");
 
-    // backend::Buffer *getIndexBuffer()
+    // cocos2d::backend::Buffer *getIndexBuffer()
     cocos2d::backend::Buffer *ret = (cocos2d::backend::Buffer *)self->getIndexBuffer();
     int num_ret = olua_push_cppobj(L, ret, "ccb.Buffer");
 
@@ -607,7 +607,7 @@ static int _cocos2d_Mesh_getIndexFormat(lua_State *L)
 
     olua_to_cppobj(L, 1, (void **)&self, "cc.Mesh");
 
-    // CustomCommand::IndexFormat getIndexFormat()
+    // cocos2d::CustomCommand::IndexFormat getIndexFormat()
     cocos2d::CustomCommand::IndexFormat ret = (cocos2d::CustomCommand::IndexFormat)self->getIndexFormat();
     int num_ret = olua_push_uint(L, (lua_Unsigned)ret);
 
@@ -677,7 +677,7 @@ static int _cocos2d_Mesh_getPrimitiveType(lua_State *L)
 
     olua_to_cppobj(L, 1, (void **)&self, "cc.Mesh");
 
-    // CustomCommand::PrimitiveType getPrimitiveType()
+    // cocos2d::CustomCommand::PrimitiveType getPrimitiveType()
     cocos2d::CustomCommand::PrimitiveType ret = (cocos2d::CustomCommand::PrimitiveType)self->getPrimitiveType();
     int num_ret = olua_push_uint(L, (lua_Unsigned)ret);
 
@@ -694,7 +694,7 @@ static int _cocos2d_Mesh_getProgramState(lua_State *L)
 
     olua_to_cppobj(L, 1, (void **)&self, "cc.Mesh");
 
-    // backend::ProgramState *getProgramState()
+    // cocos2d::backend::ProgramState *getProgramState()
     cocos2d::backend::ProgramState *ret = (cocos2d::backend::ProgramState *)self->getProgramState();
     int num_ret = olua_push_cppobj(L, ret, "ccb.ProgramState");
 
@@ -747,7 +747,7 @@ static int _cocos2d_Mesh_getTexture2(lua_State *L)
     olua_to_cppobj(L, 1, (void **)&self, "cc.Mesh");
     olua_check_uint(L, 2, &arg1);
 
-    // cocos2d::Texture2D *getTexture(NTextureData::Usage usage)
+    // cocos2d::Texture2D *getTexture(cocos2d::NTextureData::Usage usage)
     cocos2d::Texture2D *ret = (cocos2d::Texture2D *)self->getTexture((cocos2d::NTextureData::Usage)arg1);
     int num_ret = olua_push_cppobj(L, ret, "cc.Texture2D");
 
@@ -767,7 +767,7 @@ static int _cocos2d_Mesh_getTexture(lua_State *L)
 
     if (num_args == 1) {
         // if ((olua_is_uint(L, 2))) {
-            // cocos2d::Texture2D *getTexture(NTextureData::Usage usage)
+            // cocos2d::Texture2D *getTexture(cocos2d::NTextureData::Usage usage)
             return _cocos2d_Mesh_getTexture2(L);
         // }
     }
@@ -802,7 +802,7 @@ static int _cocos2d_Mesh_getVertexBuffer(lua_State *L)
 
     olua_to_cppobj(L, 1, (void **)&self, "cc.Mesh");
 
-    // backend::Buffer *getVertexBuffer()
+    // cocos2d::backend::Buffer *getVertexBuffer()
     cocos2d::backend::Buffer *ret = (cocos2d::backend::Buffer *)self->getVertexBuffer();
     int num_ret = olua_push_cppobj(L, ret, "ccb.Buffer");
 
@@ -838,7 +838,7 @@ static int _cocos2d_Mesh_hasVertexAttrib(lua_State *L)
     olua_to_cppobj(L, 1, (void **)&self, "cc.Mesh");
     olua_check_uint(L, 2, &arg1);
 
-    // bool hasVertexAttrib(shaderinfos::VertexKey attrib)
+    // bool hasVertexAttrib(cocos2d::shaderinfos::VertexKey attrib)
     bool ret = (bool)self->hasVertexAttrib((cocos2d::shaderinfos::VertexKey)arg1);
     int num_ret = olua_push_bool(L, ret);
 
@@ -942,7 +942,7 @@ static int _cocos2d_Mesh_setProgramState(lua_State *L)
     olua_to_cppobj(L, 1, (void **)&self, "cc.Mesh");
     olua_check_cppobj(L, 2, (void **)&arg1, "ccb.ProgramState");
 
-    // void setProgramState(backend::ProgramState *programState)
+    // void setProgramState(cocos2d::backend::ProgramState *programState)
     self->setProgramState(arg1);
 
     olua_endinvoke(L);
@@ -1018,7 +1018,7 @@ static int _cocos2d_Mesh_setTexture3(lua_State *L)
     olua_check_uint(L, 3, &arg2);
     olua_check_bool(L, 4, &arg3);
 
-    // void setTexture(cocos2d::Texture2D *tex, NTextureData::Usage usage, @optional bool cacheFileName)
+    // void setTexture(cocos2d::Texture2D *tex, cocos2d::NTextureData::Usage usage, @optional bool cacheFileName)
     self->setTexture(arg1, (cocos2d::NTextureData::Usage)arg2, arg3);
 
     olua_endinvoke(L);
@@ -1038,7 +1038,7 @@ static int _cocos2d_Mesh_setTexture4(lua_State *L)
     olua_check_std_string(L, 2, &arg1);
     olua_check_uint(L, 3, &arg2);
 
-    // void setTexture(const std::string &texPath, NTextureData::Usage usage)
+    // void setTexture(const std::string &texPath, cocos2d::NTextureData::Usage usage)
     self->setTexture(arg1, (cocos2d::NTextureData::Usage)arg2);
 
     olua_endinvoke(L);
@@ -1058,7 +1058,7 @@ static int _cocos2d_Mesh_setTexture5(lua_State *L)
     olua_check_cppobj(L, 2, (void **)&arg1, "cc.Texture2D");
     olua_check_uint(L, 3, &arg2);
 
-    // void setTexture(cocos2d::Texture2D *tex, NTextureData::Usage usage, @optional bool cacheFileName)
+    // void setTexture(cocos2d::Texture2D *tex, cocos2d::NTextureData::Usage usage, @optional bool cacheFileName)
     self->setTexture(arg1, (cocos2d::NTextureData::Usage)arg2);
 
     olua_endinvoke(L);
@@ -1084,19 +1084,19 @@ static int _cocos2d_Mesh_setTexture(lua_State *L)
 
     if (num_args == 2) {
         if ((olua_is_std_string(L, 2)) && (olua_is_uint(L, 3))) {
-            // void setTexture(const std::string &texPath, NTextureData::Usage usage)
+            // void setTexture(const std::string &texPath, cocos2d::NTextureData::Usage usage)
             return _cocos2d_Mesh_setTexture4(L);
         }
 
         // if ((olua_is_cppobj(L, 2, "cc.Texture2D")) && (olua_is_uint(L, 3))) {
-            // void setTexture(cocos2d::Texture2D *tex, NTextureData::Usage usage, @optional bool cacheFileName)
+            // void setTexture(cocos2d::Texture2D *tex, cocos2d::NTextureData::Usage usage, @optional bool cacheFileName)
             return _cocos2d_Mesh_setTexture5(L);
         // }
     }
 
     if (num_args == 3) {
         // if ((olua_is_cppobj(L, 2, "cc.Texture2D")) && (olua_is_uint(L, 3)) && (olua_is_bool(L, 4))) {
-            // void setTexture(cocos2d::Texture2D *tex, NTextureData::Usage usage, @optional bool cacheFileName)
+            // void setTexture(cocos2d::Texture2D *tex, cocos2d::NTextureData::Usage usage, @optional bool cacheFileName)
             return _cocos2d_Mesh_setTexture3(L);
         // }
     }
@@ -1806,7 +1806,7 @@ static int _cocos2d_Sprite3DMaterial_createWithProgramState(lua_State *L)
 
     olua_check_cppobj(L, 1, (void **)&arg1, "ccb.ProgramState");
 
-    // static cocos2d::Sprite3DMaterial *createWithProgramState(backend::ProgramState *programState)
+    // static cocos2d::Sprite3DMaterial *createWithProgramState(cocos2d::backend::ProgramState *programState)
     cocos2d::Sprite3DMaterial *ret = (cocos2d::Sprite3DMaterial *)cocos2d::Sprite3DMaterial::createWithProgramState(arg1);
     int num_ret = olua_push_cppobj(L, ret, "cc.Sprite3DMaterial");
 
@@ -1868,7 +1868,7 @@ static int _cocos2d_Sprite3DMaterial_setTexture(lua_State *L)
     olua_check_cppobj(L, 2, (void **)&arg1, "cc.Texture2D");
     olua_check_uint(L, 3, &arg2);
 
-    // void setTexture(cocos2d::Texture2D *tex, NTextureData::Usage usage)
+    // void setTexture(cocos2d::Texture2D *tex, cocos2d::NTextureData::Usage usage)
     self->setTexture(arg1, (cocos2d::NTextureData::Usage)arg2);
 
     olua_endinvoke(L);
@@ -2030,14 +2030,14 @@ static int _cocos2d_Sprite3D_createAsync1(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
     olua_check_obj(L, 3, (void **)&arg3, "void *");
 
-    void *callback_store_obj = (void *)olua_pushclassobj(L, "cc.Sprite3D");
+    void *self_obj = (void *)olua_pushclassobj(L, "cc.Sprite3D");
     std::string tag = "createAsync";
-    std::string func = olua_setcallback(L, callback_store_obj, tag.c_str(), 2, OLUA_TAG_REPLACE);
-    lua_State *MT = olua_mainthread();
-    arg2 = [callback_store_obj, func, MT](cocos2d::Sprite3D *arg1, void *arg2) {
-        lua_State *L = olua_mainthread();
+    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 2, OLUA_TAG_REPLACE);
+    lua_Unsigned ctx = olua_context(L);
+    arg2 = [self_obj, func, ctx](cocos2d::Sprite3D *arg1, void *arg2) {
+        lua_State *L = olua_mainthread(NULL);
 
-        if (MT == L) {
+        if (L != NULL && (olua_context(L) == ctx)) {
             int top = lua_gettop(L);
             size_t last = olua_push_objpool(L);
             olua_enable_objpool(L);
@@ -2045,7 +2045,7 @@ static int _cocos2d_Sprite3D_createAsync1(lua_State *L)
             olua_push_obj(L, arg2, "void *");
             olua_disable_objpool(L);
 
-            olua_callback(L, callback_store_obj, func.c_str(), 2);
+            olua_callback(L, self_obj, func.c_str(), 2);
 
             //pop stack value
             olua_pop_objpool(L, last);
@@ -2074,14 +2074,14 @@ static int _cocos2d_Sprite3D_createAsync2(lua_State *L)
     olua_check_std_string(L, 2, &arg2);
     olua_check_obj(L, 4, (void **)&arg4, "void *");
 
-    void *callback_store_obj = (void *)olua_pushclassobj(L, "cc.Sprite3D");
+    void *self_obj = (void *)olua_pushclassobj(L, "cc.Sprite3D");
     std::string tag = "createAsync";
-    std::string func = olua_setcallback(L, callback_store_obj, tag.c_str(), 3, OLUA_TAG_REPLACE);
-    lua_State *MT = olua_mainthread();
-    arg3 = [callback_store_obj, func, MT](cocos2d::Sprite3D *arg1, void *arg2) {
-        lua_State *L = olua_mainthread();
+    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 3, OLUA_TAG_REPLACE);
+    lua_Unsigned ctx = olua_context(L);
+    arg3 = [self_obj, func, ctx](cocos2d::Sprite3D *arg1, void *arg2) {
+        lua_State *L = olua_mainthread(NULL);
 
-        if (MT == L) {
+        if (L != NULL && (olua_context(L) == ctx)) {
             int top = lua_gettop(L);
             size_t last = olua_push_objpool(L);
             olua_enable_objpool(L);
@@ -2089,7 +2089,7 @@ static int _cocos2d_Sprite3D_createAsync2(lua_State *L)
             olua_push_obj(L, arg2, "void *");
             olua_disable_objpool(L);
 
-            olua_callback(L, callback_store_obj, func.c_str(), 2);
+            olua_callback(L, self_obj, func.c_str(), 2);
 
             //pop stack value
             olua_pop_objpool(L, last);

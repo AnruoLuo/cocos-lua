@@ -262,20 +262,20 @@ static int _xgame_runtime_alert(lua_State *L)
     olua_check_std_string(L, 3, &arg3);
     olua_check_std_string(L, 4, &arg4);
 
-    void *callback_store_obj = (void *)olua_pushclassobj(L, "kernel.runtime");
+    void *self_obj = (void *)olua_pushclassobj(L, "kernel.runtime");
     std::string tag = "alert";
-    std::string func = olua_setcallback(L, callback_store_obj, tag.c_str(), 5, OLUA_TAG_NEW);
-    lua_State *MT = olua_mainthread();
-    arg5 = [callback_store_obj, func, MT](bool arg1) {
-        lua_State *L = olua_mainthread();
+    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 5, OLUA_TAG_NEW);
+    lua_Unsigned ctx = olua_context(L);
+    arg5 = [self_obj, func, ctx](bool arg1) {
+        lua_State *L = olua_mainthread(NULL);
 
-        if (MT == L) {
+        if (L != NULL && (olua_context(L) == ctx)) {
             int top = lua_gettop(L);
             olua_push_bool(L, arg1);
 
-            olua_callback(L, callback_store_obj, func.c_str(), 1);
+            olua_callback(L, self_obj, func.c_str(), 1);
 
-            olua_removecallback(L, callback_store_obj, func.c_str(), OLUA_TAG_WHOLE);
+            olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
 
             lua_settop(L, top);
         }
@@ -707,20 +707,20 @@ static int _xgame_runtime_openURL1(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     if (olua_is_std_function(L, 2)) {
-        void *callback_store_obj = (void *)olua_pushclassobj(L, "kernel.runtime");
+        void *self_obj = (void *)olua_pushclassobj(L, "kernel.runtime");
         std::string tag = "openURL";
-        std::string func = olua_setcallback(L, callback_store_obj, tag.c_str(), 2, OLUA_TAG_NEW);
-        lua_State *MT = olua_mainthread();
-        arg2 = [callback_store_obj, func, MT](bool arg1) {
-            lua_State *L = olua_mainthread();
+        std::string func = olua_setcallback(L, self_obj, tag.c_str(), 2, OLUA_TAG_NEW);
+        lua_Unsigned ctx = olua_context(L);
+        arg2 = [self_obj, func, ctx](bool arg1) {
+            lua_State *L = olua_mainthread(NULL);
 
-            if (MT == L) {
+            if (L != NULL && (olua_context(L) == ctx)) {
                 int top = lua_gettop(L);
                 olua_push_bool(L, arg1);
 
-                olua_callback(L, callback_store_obj, func.c_str(), 1);
+                olua_callback(L, self_obj, func.c_str(), 1);
 
-                olua_removecallback(L, callback_store_obj, func.c_str(), OLUA_TAG_WHOLE);
+                olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
 
                 lua_settop(L, top);
             }
@@ -797,20 +797,20 @@ static int _xgame_runtime_requestPermission(lua_State *L)
 
     olua_check_uint(L, 1, &arg1);
 
-    void *callback_store_obj = (void *)olua_pushclassobj(L, "kernel.runtime");
+    void *self_obj = (void *)olua_pushclassobj(L, "kernel.runtime");
     std::string tag = "requestPermission";
-    std::string func = olua_setcallback(L, callback_store_obj, tag.c_str(), 2, OLUA_TAG_NEW);
-    lua_State *MT = olua_mainthread();
-    arg2 = [callback_store_obj, func, MT](xgame::PermissionStatus arg1) {
-        lua_State *L = olua_mainthread();
+    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 2, OLUA_TAG_NEW);
+    lua_Unsigned ctx = olua_context(L);
+    arg2 = [self_obj, func, ctx](xgame::PermissionStatus arg1) {
+        lua_State *L = olua_mainthread(NULL);
 
-        if (MT == L) {
+        if (L != NULL && (olua_context(L) == ctx)) {
             int top = lua_gettop(L);
             olua_push_uint(L, (lua_Unsigned)arg1);
 
-            olua_callback(L, callback_store_obj, func.c_str(), 1);
+            olua_callback(L, self_obj, func.c_str(), 1);
 
-            olua_removecallback(L, callback_store_obj, func.c_str(), OLUA_TAG_WHOLE);
+            olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
 
             lua_settop(L, top);
         }
@@ -859,16 +859,18 @@ static int _xgame_runtime_setDispatcher(lua_State *L)
 
     int handler = olua_reffunc(L, 1);
     xgame::runtime::setDispatcher([handler](const std::string &event, const std::string &args) {
-        lua_State *L = olua_mainthread();
-        int top = lua_gettop(L);
-        olua_geterrorfunc(L);
-        olua_getref(L, handler);
-        if (lua_isfunction(L, -1)) {
-            lua_pushstring(L, event.c_str());
-            lua_pushstring(L, args.c_str());
-            lua_pcall(L, 2, 0, top + 1);
+        lua_State *L = olua_mainthread(NULL);
+        if (L != NULL) {
+            int top = lua_gettop(L);
+            olua_geterrorfunc(L);
+            olua_getref(L, handler);
+            if (lua_isfunction(L, -1)) {
+                lua_pushstring(L, event.c_str());
+                lua_pushstring(L, args.c_str());
+                lua_pcall(L, 2, 0, top + 1);
+            }
+            lua_settop(L, top);
         }
-        lua_settop(L, top);
     });
 
     olua_endinvoke(L);
@@ -1976,19 +1978,19 @@ static int _xgame_timer_delay(lua_State *L)
 
     olua_check_number(L, 1, &arg1);
 
-    void *callback_store_obj = (void *)olua_pushclassobj(L, "kernel.timer");
+    void *self_obj = (void *)olua_pushclassobj(L, "kernel.timer");
     std::string tag = "delay";
-    std::string func = olua_setcallback(L, callback_store_obj, tag.c_str(), 2, OLUA_TAG_NEW);
-    lua_State *MT = olua_mainthread();
-    arg2 = [callback_store_obj, func, MT]() {
-        lua_State *L = olua_mainthread();
+    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 2, OLUA_TAG_NEW);
+    lua_Unsigned ctx = olua_context(L);
+    arg2 = [self_obj, func, ctx]() {
+        lua_State *L = olua_mainthread(NULL);
 
-        if (MT == L) {
+        if (L != NULL && (olua_context(L) == ctx)) {
             int top = lua_gettop(L);
 
-            olua_callback(L, callback_store_obj, func.c_str(), 0);
+            olua_callback(L, self_obj, func.c_str(), 0);
 
-            olua_removecallback(L, callback_store_obj, func.c_str(), OLUA_TAG_WHOLE);
+            olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
 
             lua_settop(L, top);
         }
@@ -2013,19 +2015,19 @@ static int _xgame_timer_delayWithTag(lua_State *L)
     olua_check_number(L, 1, &arg1);
     olua_check_std_string(L, 2, &arg2);
 
-    void *callback_store_obj = (void *)olua_pushclassobj(L, "kernel.timer");
+    void *self_obj = (void *)olua_pushclassobj(L, "kernel.timer");
     std::string tag = makeTimerDelayTag(arg2);
-    std::string func = olua_setcallback(L, callback_store_obj, tag.c_str(), 3, OLUA_TAG_REPLACE);
-    lua_State *MT = olua_mainthread();
-    arg3 = [callback_store_obj, func, MT]() {
-        lua_State *L = olua_mainthread();
+    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 3, OLUA_TAG_REPLACE);
+    lua_Unsigned ctx = olua_context(L);
+    arg3 = [self_obj, func, ctx]() {
+        lua_State *L = olua_mainthread(NULL);
 
-        if (MT == L) {
+        if (L != NULL && (olua_context(L) == ctx)) {
             int top = lua_gettop(L);
 
-            olua_callback(L, callback_store_obj, func.c_str(), 0);
+            olua_callback(L, self_obj, func.c_str(), 0);
 
-            olua_removecallback(L, callback_store_obj, func.c_str(), OLUA_TAG_WHOLE);
+            olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
 
             lua_settop(L, top);
         }
@@ -2048,8 +2050,8 @@ static int _xgame_timer_killDelay(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     std::string tag = makeTimerDelayTag(arg1);
-    void *callback_store_obj = (void *)olua_pushclassobj(L, "kernel.timer");
-    olua_removecallback(L, callback_store_obj, tag.c_str(), OLUA_TAG_SUBEQUAL);
+    void *self_obj = (void *)olua_pushclassobj(L, "kernel.timer");
+    olua_removecallback(L, self_obj, tag.c_str(), OLUA_TAG_SUBEQUAL);
 
     // static void killDelay(const std::string &tag)
     xgame::timer::killDelay(arg1);
@@ -2066,15 +2068,17 @@ static int _xgame_timer_schedule(lua_State *L)
     float interval = (float)olua_checknumber(L, 1);
     uint32_t callback = olua_reffunc(L, 2);
     uint32_t id = xgame::timer::schedule(interval, [callback](float dt) {
-        lua_State *L = olua_mainthread();
-        int top = lua_gettop(L);
-        olua_geterrorfunc(L);
-        olua_getref(L, callback);
-        if (lua_isfunction(L, -1)) {
-            lua_pushnumber(L, dt);
-            lua_pcall(L, 1, 0, top + 1);
+        lua_State *L = olua_mainthread(NULL);
+        if (L != NULL) {
+            int top = lua_gettop(L);
+            olua_geterrorfunc(L);
+            olua_getref(L, callback);
+            if (lua_isfunction(L, -1)) {
+                lua_pushnumber(L, dt);
+                lua_pcall(L, 1, 0, top + 1);
+            }
+            lua_settop(L, top);
         }
-        lua_settop(L, top);
     });
     lua_pushinteger(L, ((uint64_t)callback << 32) | (uint64_t)id);
 
@@ -2302,21 +2306,21 @@ static int _xgame_downloader_setDispatcher(lua_State *L)
 
     std::function<void(const xgame::downloader::FileTask &)> arg1;       /** callback */
 
-    void *callback_store_obj = (void *)olua_pushclassobj(L, "kernel.downloader");
+    void *self_obj = (void *)olua_pushclassobj(L, "kernel.downloader");
     std::string tag = "Dispatcher";
-    std::string func = olua_setcallback(L, callback_store_obj, tag.c_str(), 1, OLUA_TAG_REPLACE);
-    lua_State *MT = olua_mainthread();
-    arg1 = [callback_store_obj, func, MT](const xgame::downloader::FileTask &arg1) {
-        lua_State *L = olua_mainthread();
+    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 1, OLUA_TAG_REPLACE);
+    lua_Unsigned ctx = olua_context(L);
+    arg1 = [self_obj, func, ctx](const xgame::downloader::FileTask &arg1) {
+        lua_State *L = olua_mainthread(NULL);
 
-        if (MT == L) {
+        if (L != NULL && (olua_context(L) == ctx)) {
             int top = lua_gettop(L);
             size_t last = olua_push_objpool(L);
             olua_enable_objpool(L);
             auto_olua_push_xgame_downloader_FileTask(L, &arg1);
             olua_disable_objpool(L);
 
-            olua_callback(L, callback_store_obj, func.c_str(), 1);
+            olua_callback(L, self_obj, func.c_str(), 1);
 
             //pop stack value
             olua_pop_objpool(L, last);

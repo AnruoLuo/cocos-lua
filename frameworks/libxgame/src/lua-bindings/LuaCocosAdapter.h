@@ -2,6 +2,7 @@
 #define __LUACOCOSADAPTER_H__
 
 #include "2d/CCComponent.h"
+#include "2d/CCActionTween.h"
 #include "ui/CocosGUI.h"
 #include "network/WebSocket.h"
 
@@ -29,6 +30,20 @@ public:
     std::function<void()> onRemoveCallback;
 };
 
+class LuaTweenNode : public Node, public ActionTweenDelegate
+{
+public:
+    typedef std::function<void(float, const std::string &)> ccTweenCallback;
+    
+    static LuaTweenNode *create(const ccTweenCallback &callback);
+    
+    virtual void updateTweenAction(float value, const std::string &key);
+private:
+    virtual bool initWithCallback(const ccTweenCallback &callback);
+    
+    ccTweenCallback _callback = nullptr;
+};
+
 class LuaWebSocketDelegate : public cocos2d::network::WebSocket::Delegate {
 public:
     LuaWebSocketDelegate()
@@ -39,28 +54,28 @@ public:
        {
        }
     
-    virtual void onOpen(cocos2d::network::WebSocket* ws)
+    virtual void onOpen(network::WebSocket* ws)
     {
         if (onOpenCallback) {
             onOpenCallback(ws);
         }
     }
     
-    virtual void onMessage(cocos2d::network::WebSocket* ws, const cocos2d::network::WebSocket::Data& data)
+    virtual void onMessage(network::WebSocket* ws, const network::WebSocket::Data& data)
     {
         if (onMessageCallback) {
             onMessageCallback(ws, data);
         }
     }
     
-    virtual void onClose(cocos2d::network::WebSocket* ws)
+    virtual void onClose(network::WebSocket* ws)
     {
         if (onCloseCallback) {
             onCloseCallback(ws);
         }
     }
     
-    virtual void onError(cocos2d::network::WebSocket* ws, const cocos2d::network::WebSocket::ErrorCode& error)
+    virtual void onError(network::WebSocket* ws, const network::WebSocket::ErrorCode& error)
     {
         if (onErrorCallback) {
             onErrorCallback(ws, error);

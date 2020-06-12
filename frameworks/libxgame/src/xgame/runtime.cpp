@@ -108,10 +108,10 @@ void runtime::init()
     
     // cocos event
     auto dispatcher = Director::getInstance()->getEventDispatcher();
-    dispatcher->addCustomEventListener("director_after_update", [](EventCustom *e) {
+    dispatcher->addCustomEventListener(Director::EVENT_AFTER_UPDATE, [](EventCustom *e) {
         runtime::dispatchEvent("runtimeUpdate", "");
     });
-    dispatcher->addCustomEventListener("director_projection_changed", [](EventCustom *e) {
+    dispatcher->addCustomEventListener(Director::EVENT_PROJECTION_CHANGED, [](EventCustom *e) {
         runtime::dispatchEvent("runtimeResize", "");
     });
 }
@@ -218,7 +218,7 @@ lua_State *runtime::luaVM()
         for (auto func : _luaLibs) {
             olua_dofunc(_luaVM, func);
         }
-        olua_push_cppobj<cocos2d::Director>(_luaVM, cocos2d::Director::getInstance(), "cc.Director");
+        olua_pushobj<cocos2d::Director>(_luaVM, cocos2d::Director::getInstance());
         lua_setfield(_luaVM, LUA_REGISTRYINDEX, "__cocos2d_ref_chain__");
     }
     return _luaVM;
@@ -456,6 +456,32 @@ void runtime::handleOpenURL(const std::string &uri)
 bool runtime::canOpenURL(const std::string &uri)
 {
     return __runtime_canOpenURL(uri);
+}
+
+void runtime::callref(int func, const std::string &args, bool once)
+{
+    if (!xgame::runtime::isRestarting()) {
+        auto listener = new EventListenerCustom();
+        listener->autorelease();
+        listener->init(Director::EVENT_BEFORE_UPDATE, [func, args, once, listener](EventCustom *event){
+            lua_State *L = olua_mainthread(NULL);
+            int top = lua_gettop(L);
+            olua_geterrorfunc(L);
+            olua_getref(L, func);
+            if (!lua_isnil(L, -1)) {
+                lua_pushstring(L, args.c_str());
+                lua_pcall(L, 1, 0, top + 1);
+            } else {
+                xgame::runtime::log("attempt to call nil: %d %s", func, args.c_str());
+            }
+            if (once) {
+                olua_unref(L, func);
+            }
+            lua_settop(L, top);
+            Director::getInstance()->getEventDispatcher()->removeEventListener(listener);
+        });
+        Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(listener, 1);
+    }
 }
 
 //

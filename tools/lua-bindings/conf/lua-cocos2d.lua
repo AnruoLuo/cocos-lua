@@ -86,8 +86,7 @@ Scheduler.EXCLUDE 'performFunctionInCocosThread'
 Scheduler.CHUNK = [[
 template <typename T> bool doScheduleUpdate(lua_State *L)
 {
-    const char *cls = olua_getluatype<T>(L);
-    if (olua_is_cppobj(L, 2, cls)) {
+    if (olua_isa<T>(L, 2)) {
         auto self = olua_checkobj<cocos2d::Scheduler>(L, 1);
         auto target = olua_checkobj<T>(L, 2);
         lua_Integer priority = olua_checkinteger(L, 3);
@@ -157,7 +156,7 @@ EventDispatcher.CALLBACK {
 EventDispatcher.CHUNK = [[
 static void doRemoveEventListenersForTarget(lua_State *L, cocos2d::Node *target, bool recursive, const char *refname)
 {
-    if (olua_getuserdata(L, target)) {
+    if (olua_getrawobj(L, target)) {
         olua_delallrefs(L, -1, refname);
         lua_pop(L, 1);
     }
@@ -267,11 +266,10 @@ AudioEngine.INJECT('uncache', {
     BEFORE = [[
         std::string path = olua_checkstring(L, 1);
         std::list<int> ids = cocos2d::LuaAudioEngine::getAudioIDs(path);
-        const char *cls = olua_getluatype<cocos2d::AudioEngine>(L);
-        void *callback_store_obj = (void *)olua_pushclassobj(L, cls);
+        void *self_obj = olua_pushclassobj<cocos2d::AudioEngine>(L);
         for (auto id : ids) {
             std::string tag = makeAudioEngineFinishCallbackTag((lua_Integer)id);
-            olua_removecallback(L, callback_store_obj, tag.c_str(), OLUA_TAG_SUBEQUAL);
+            olua_removecallback(L, self_obj, tag.c_str(), OLUA_TAG_SUBEQUAL);
         }
     ]]
 })
@@ -654,6 +652,14 @@ Node.INJECT({'removeFromParent', 'removeFromParentAndCleanup'}, {
         int parent = lua_gettop(L);
     ]]
 })
+
+typeconf 'cocos2d::LuaTweenNode'
+    .CALLBACK {
+        NAME = 'create',
+        TAG_MAKER = 'ActionTween',
+        TAG_MODE = 'OLUA_TAG_NEW',
+        TAG_STORE = 'return',
+    }
 
 typeconf 'cocos2d::AtlasNode'
 typeconf 'cocos2d::sImageTGA'

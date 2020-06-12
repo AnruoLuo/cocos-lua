@@ -49,6 +49,7 @@ typeconf 'cocos2d::Speed'
 typeconf 'cocos2d::Follow'
 typeconf 'cocos2d::tweenfunc'
 typeconf 'cocos2d::ActionInterval'
+typeconf 'cocos2d::ActionTween'
 
 local Sequence = typeconf 'cocos2d::Sequence'
 Sequence.ATTR('createWithTwoActions', {ARG1 = '@addref(autoref |)', ARG2 = '@addref(autoref |)'})
@@ -73,15 +74,15 @@ Sequence.FUNC('create', [[
     return 1;
 }]])
 
-local Repeat = typeconf 'cocos2d::Repeat'
-Repeat.ATTR('create', {ARG1 = '@addref(innerAction ^)'})
-Repeat.ATTR('setInnerAction', {ARG1 = '@addref(innerAction ^)'})
-Repeat.ATTR('getInnerAction', {RET = '@addref(innerAction ^)'})
+typeconf 'cocos2d::Repeat'
+    .ATTR('create', {ARG1 = '@addref(innerAction ^)'})
+    .ATTR('setInnerAction', {ARG1 = '@addref(innerAction ^)'})
+    .ATTR('getInnerAction', {RET = '@addref(innerAction ^)'})
 
-local RepeatForever = typeconf 'cocos2d::RepeatForever'
-RepeatForever.ATTR('create', {ARG1 = '@addref(innerAction ^)'})
-RepeatForever.ATTR('setInnerAction', {ARG1 = '@addref(innerAction ^)'})
-RepeatForever.ATTR('getInnerAction', {RET = '@addref(innerAction ^)'})
+typeconf 'cocos2d::RepeatForever'
+    .ATTR('create', {ARG1 = '@addref(innerAction ^)'})
+    .ATTR('setInnerAction', {ARG1 = '@addref(innerAction ^)'})
+    .ATTR('getInnerAction', {RET = '@addref(innerAction ^)'})
 
 local Spawn = typeconf 'cocos2d::Spawn'
 Spawn.ATTR('createWithTwoActions', {ARG1 = '@addref(autoref |)', ARG2 = '@addref(autoref |)'})
