@@ -6,7 +6,7 @@ local PluginEvent   = require "xgame.event.PluginEvent"
 local timer         = require "xgame.timer"
 local runtime       = require "xgame.runtime"
 local impl          = require "kernel.plugins.wechat"
-local Dispatcher    = require "xgame.event.Dispatcher"
+local Dispatcher    = require "xgame.Dispatcher"
 local openssl       = require "openssl"
 local cjson         = require "cjson.safe"
 local Director      = require "cc.Director"
@@ -108,6 +108,10 @@ function WeChat:auth(ticket)
     if runtime.os == 'ios' then
         runtime.on(Event.RUNTIME_RESUME, self._onResume, self)
     end
+end
+
+function WeChat:open(id, path, type)
+    impl:open(assert(id), path or '', type or 0)
 end
 
 function WeChat:_requestTicket()
@@ -279,6 +283,12 @@ elseif runtime.os == "android" then
     function impl:share(message)
         inst.share(cjson.encode(message), function (...)
             impl.callback("share", ...)
+        end)
+    end
+
+    function impl:open(id, path, type)
+        inst.open(id, path, type, function (...)
+            impl.callback("open", ...)
         end)
     end
 end

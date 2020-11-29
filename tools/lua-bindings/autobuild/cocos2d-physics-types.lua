@@ -4,41 +4,11 @@ local olua = require "olua"
 local typedef = olua.typedef
 
 typedef {
-    CONV = 'olua_$$_cppobj',
-    CPPCLS = 'cocos2d::PhysicsWorld',
-}
-
-typedef {
-    CONV = 'olua_$$_cppobj',
-    CPPCLS = 'cocos2d::PhysicsShape',
-}
-
-typedef {
-    CONV = 'olua_$$_cppobj',
-    CPPCLS = 'cocos2d::PhysicsContact',
-}
-
-typedef {
-    CONV = 'olua_$$_cppobj',
-    CPPCLS = 'cocos2d::PhysicsContactPreSolve',
-}
-
-typedef {
-    CONV = 'olua_$$_cppobj',
-    CPPCLS = 'cocos2d::PhysicsContactPostSolve',
-}
-
-typedef {
-    CONV = 'olua_$$_cppobj',
-    CPPCLS = 'cocos2d::PhysicsRayCastInfo',
-}
-
-typedef {
     CPPCLS = 'cocos2d::PhysicsMaterial',
     LUACLS = nil,
     DECLTYPE = nil,
     CONV = 'auto_olua_$$_cocos2d_PhysicsMaterial',
-    NUMVARS = 3,
+    NUM_VARS = 3,
 }
 
 typedef {
@@ -46,7 +16,7 @@ typedef {
     LUACLS = 'cc.EventListenerPhysicsContact',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -54,7 +24,7 @@ typedef {
     LUACLS = 'cc.EventListenerPhysicsContactWithGroup',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -62,7 +32,7 @@ typedef {
     LUACLS = 'cc.EventListenerPhysicsContactWithBodies',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -70,7 +40,7 @@ typedef {
     LUACLS = 'cc.EventListenerPhysicsContactWithShapes',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -78,7 +48,7 @@ typedef {
     LUACLS = 'cc.PhysicsBody',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -86,7 +56,7 @@ typedef {
     LUACLS = 'cc.PhysicsContact.EventCode',
     DECLTYPE = "lua_Unsigned",
     CONV = 'olua_$$_uint',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -94,7 +64,7 @@ typedef {
     LUACLS = 'cc.PhysicsContact',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -102,7 +72,7 @@ typedef {
     LUACLS = 'cc.PhysicsContactPostSolve',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -110,7 +80,7 @@ typedef {
     LUACLS = 'cc.PhysicsContactPreSolve',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -118,7 +88,7 @@ typedef {
     LUACLS = 'cc.PhysicsJoint',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -126,7 +96,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointDistance',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -134,7 +104,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointFixed',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -142,7 +112,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointGear',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -150,7 +120,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointGroove',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -158,7 +128,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointLimit',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -166,7 +136,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointMotor',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -174,7 +144,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointPin',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -182,7 +152,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointRatchet',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -190,7 +160,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointRotaryLimit',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -198,7 +168,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointRotarySpring',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -206,7 +176,7 @@ typedef {
     LUACLS = 'cc.PhysicsJointSpring',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -214,7 +184,7 @@ typedef {
     LUACLS = 'cc.PhysicsShape.Type',
     DECLTYPE = "lua_Unsigned",
     CONV = 'olua_$$_uint',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -222,7 +192,7 @@ typedef {
     LUACLS = 'cc.PhysicsShape',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -230,7 +200,7 @@ typedef {
     LUACLS = 'cc.PhysicsShapePolygon',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -238,7 +208,7 @@ typedef {
     LUACLS = 'cc.PhysicsShapeEdgePolygon',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -246,7 +216,7 @@ typedef {
     LUACLS = 'cc.PhysicsShapeBox',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -254,7 +224,7 @@ typedef {
     LUACLS = 'cc.PhysicsShapeCircle',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -262,7 +232,7 @@ typedef {
     LUACLS = 'cc.PhysicsShapeEdgeBox',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -270,7 +240,7 @@ typedef {
     LUACLS = 'cc.PhysicsShapeEdgeChain',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -278,7 +248,7 @@ typedef {
     LUACLS = 'cc.PhysicsShapeEdgeSegment',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -286,7 +256,7 @@ typedef {
     LUACLS = 'cc.PhysicsRayCastInfo',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -294,6 +264,6 @@ typedef {
     LUACLS = 'cc.PhysicsWorld',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 

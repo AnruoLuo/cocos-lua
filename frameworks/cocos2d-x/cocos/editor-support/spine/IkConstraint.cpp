@@ -56,10 +56,12 @@ void IkConstraint::apply(Bone &bone, float targetX, float targetY, bool compress
             ty = targetY - bone._worldY;
             break;
         case TransformMode_NoRotationOrReflection: {
-            rotationIK += MathUtil::atan2(pc, pa) * MathUtil::Rad_Deg;
-            float ps = MathUtil::abs(pa * pd - pb * pc) / (pa * pa + pc * pc);
-            pb = -pc * ps;
-            pd = pa * ps;
+            float s = MathUtil::abs(pa * pd - pb * pc) / (pa * pa + pc * pc);
+            float sa = pa / bone._skeleton.getScaleX();
+            float sc = pc / bone._skeleton.getScaleY();
+            pb = -sc * s * bone._skeleton.getScaleX();
+            pd = sa * s * bone._skeleton.getScaleY();
+            rotationIK += MathUtil::atan2(sc, sa) * MathUtil::Rad_Deg;
         }
 	    default:
 	        float x = targetX - p->_worldX, y = targetY - p->_worldY;
@@ -158,11 +160,13 @@ void IkConstraint::apply(Bone &parent, Bone &child, float targetX, float targetY
 	}
 	x = targetX - pp->_worldX;
 	y = targetY - pp->_worldY;
-	tx = (x * d - y * b) * id - px, ty = (y * a - x * c) * id - py;
+    tx = (x * d - y * b) * id - px;
+    ty = (y * a - x * c) * id - py;
 	dd = tx * tx + ty * ty;
 	if (softness != 0) {
 		softness *= psx * (csx + 1) / 2;
-		td = MathUtil::sqrt(dd), sd = td - l1 - l2 * psx + softness;
+        td = MathUtil::sqrt(dd);
+        sd = td - l1 - l2 * psx + softness;
 		if (sd > 0) {
 			p = MathUtil::min(1.0f, sd / (softness * 2)) - 1;
 			p = (sd - softness * (1 - p * p)) / td;
@@ -185,7 +189,8 @@ void IkConstraint::apply(Bone &parent, Bone &child, float targetX, float targetY
 		b = l2 * MathUtil::sin(a2);
 		a1 = MathUtil::atan2(ty * a - tx * b, tx * a + ty * b);
 	} else {
-		a = psx * l2, b = psy * l2;
+        a = psx * l2;
+        b = psy * l2;
 		float aa = a * a, bb = b * b, ll = l1 * l1, ta = MathUtil::atan2(ty, tx);
 		float c0 = bb * ll + aa * dd - aa * bb, c1 = -2 * bb * l1, c2 = bb - aa;
 		d = c1 * c1 - 4 * c2 * c0;
@@ -240,7 +245,7 @@ void IkConstraint::apply(Bone &parent, Bone &child, float targetX, float targetY
 		a1 = (a1 - os) * MathUtil::Rad_Deg + o1 - parent._arotation;
 		if (a1 > 180) a1 -= 360;
 		else if (a1 < -180) a1 += 360;
-		parent.updateWorldTransform(px, py, parent._rotation + a1 * alpha, sx, parent._ascaleY, 0, 0);
+		parent.updateWorldTransform(px, py, parent._arotation + a1 * alpha, sx, parent._ascaleY, 0, 0);
 		a2 = ((a2 + os) * MathUtil::Rad_Deg - child._ashearX) * s2 + o2 - child._arotation;
 		if (a2 > 180) a2 -= 360;
 		else if (a2 < -180) a2 += 360;

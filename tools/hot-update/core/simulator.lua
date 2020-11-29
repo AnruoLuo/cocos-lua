@@ -38,6 +38,7 @@ REG('kernel.filesystem', function ()
     return setmetatable({
         dir = false,
         localCachePath = false,
+        exist = function () end,
         sdCardDirectory = M.DUMMY_STR,
         documentDirectory = M.DUMMY_STR,
         cacheDirectory = M.DUMMY_STR,
@@ -56,7 +57,7 @@ function require(path)
         string.find(path, 'fgui.', 1, true) == 1 or
         string.find(path, 'swf.', 1, true) == 1 or
         string.find(path, 'kernel.', 1, true) == 1) then
-        return M.PROXY
+        return setmetatable({}, getmetatable(M.PROXY))
     else
         return _require(path)
     end

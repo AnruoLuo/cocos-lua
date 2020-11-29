@@ -46,6 +46,7 @@
 #include "xxhash.h"
 
 #include "renderer/backend/Backend.h"
+#include "platform/CCGLView.h"
 
 NS_CC_BEGIN
 
@@ -183,6 +184,10 @@ Renderer::~Renderer()
 
 void Renderer::init()
 {
+#ifdef CC_USE_METAL
+    _renderPassDescriptor.sampleCount = GLView::getGLContextAttrs().multisamplingCount;
+#endif
+    
     // Should invoke _triangleCommandBufferManager.init() first.
     _triangleCommandBufferManager.init();
     _vertexBuffer = _triangleCommandBufferManager.getVertexBuffer();
@@ -386,6 +391,11 @@ void Renderer::beginFrame()
 
 void Renderer::endFrame()
 {
+#ifdef CC_USE_METAL
+    if(_renderPassDescriptor.sampleCount > 1)
+        resolveTexture(nullptr);
+#endif
+    
     _commandBuffer->endFrame();
 
 #ifdef CC_USE_METAL
@@ -573,7 +583,8 @@ void Renderer::drawBatchedTriangles()
     _triBatchesToDraw[0].cmd = nullptr;
     
     int batchesTotal = 0;
-    int prevMaterialID = -1;
+    uint32_t prevMaterialID = 0;
+    bool isValidMaterialID = false;
     bool firstCommand = true;
 
     _filledVertex = 0;
@@ -587,7 +598,7 @@ void Renderer::drawBatchedTriangles()
         fillVerticesAndIndices(cmd, vertexBufferFillOffset);
         
         // in the same batch ?
-        if (batchable && (prevMaterialID == currentMaterialID || firstCommand))
+        if (batchable && ((isValidMaterialID && prevMaterialID == currentMaterialID) || firstCommand))
         {
             CC_ASSERT((firstCommand || _triBatchesToDraw[batchesTotal].cmd->getMaterialID() == cmd->getMaterialID()) && "argh... error in logic");
             _triBatchesToDraw[batchesTotal].indicesToDraw += cmd->getIndexCount();
@@ -608,7 +619,7 @@ void Renderer::drawBatchedTriangles()
             
             // is this a single batch ? Prevent creating a batch group then
             if (!batchable)
-                currentMaterialID = -1;
+                isValidMaterialID = false;
         }
         
         // capacity full ?
@@ -619,6 +630,7 @@ void Renderer::drawBatchedTriangles()
         }
         
         prevMaterialID = currentMaterialID;
+        isValidMaterialID = true;
         firstCommand = false;
     }
     batchesTotal++;
@@ -757,7 +769,7 @@ void Renderer::setRenderPipeline(const PipelineDescriptor& pipelineDescriptor, c
     auto device = backend::Device::getInstance();
     _renderPipeline->update(pipelineDescriptor, renderPassDescriptor);
     backend::DepthStencilState* depthStencilState = nullptr;
-    auto needDepthStencilAttachment = renderPassDescriptor.depthTestEnabled || renderPassDescriptor.stencilTestEnabled;
+    auto needDepthStencilAttachment = renderPassDescriptor.needDepthStencilAttachment();
     if (needDepthStencilAttachment)
     {
         depthStencilState = device->createDepthStencilState(_depthStencilDescriptor);
@@ -832,6 +844,8 @@ void Renderer::setRenderTarget(RenderTargetFlag flags, Texture2D* colorAttachmen
         _renderPassDescriptor.stencilTestEnabled = false;
         _renderPassDescriptor.stencilAttachmentTexture = nullptr;
     }
+    
+    _renderPassDescriptor.sampleCount = GLView::getGLContextAttrs().multisamplingCount;
 }
 
 void Renderer::clear(ClearFlag flags, const Color4F& color, float depth, unsigned int stencil, float globalOrder)
@@ -873,6 +887,23 @@ void Renderer::clear(ClearFlag flags, const Color4F& color, float depth, unsigne
     };
     addCommand(command);
 }
+
+#ifdef CC_USE_METAL
+void Renderer::resolveTexture(Texture2D* dst)
+{
+    backend::RenderPassDescriptor descriptor;
+    descriptor.needResolveTexture = true;
+    descriptor.sampleCount = _renderPassDescriptor.sampleCount;
+
+    if(dst){
+        descriptor.colorAttachmentsTexture[0] = _renderPassDescriptor.colorAttachmentsTexture[0];
+        descriptor.resolveTexture = dst->getBackendTexture();
+    }
+
+    _commandBuffer->beginRenderPass(descriptor);
+    _commandBuffer->endRenderPass();
+}
+#endif
 
 Texture2D* Renderer::getColorAttachment() const
 {

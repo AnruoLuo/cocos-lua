@@ -1,21 +1,29 @@
 local Animate = require "cc.Animate"
+local ActionFloat = require "cc.ActionFloat"
 local MoveTo = require "cc.MoveTo"
 local MoveBy = require "cc.MoveBy"
+local MoveFrom = require "cc.MoveFrom"
 local CallFunc = require "cc.CallFunc"
 local Sequence = require "cc.Sequence"
 local DelayTime = require "cc.DelayTime"
 local ScaleTo = require "cc.ScaleTo"
+local ScaleBy = require "cc.ScaleFrom"
+local ScaleFrom = require "cc.ScaleFrom"
 local Speed = require "cc.Speed"
 local Repeat = require "cc.Repeat"
 local RepeatForever = require "cc.RepeatForever"
 local FadeTo = require "cc.FadeTo"
+local FadeFrom = require "cc.FadeFrom"
 local FadeIn = require "cc.FadeIn"
 local FadeOut = require "cc.FadeOut"
+local RotateTo = require "cc.RotateTo"
+local RotateFrom = require "cc.RotateFrom"
 local RotateBy = require "cc.RotateBy"
 local Hide = require "cc.Hide"
 local Show = require "cc.Show"
 local Spawn = require "cc.Spawn"
-local RotateTo = require "cc.RotateTo"
+local CatmullRomTo = require "cc.CatmullRomTo"
+local CatmullRomBy = require "cc.CatmullRomBy"
 local EaseRateAction = require "cc.EaseRateAction"
 local EaseIn = require "cc.EaseIn"
 local EaseOut = require "cc.EaseOut"
@@ -44,6 +52,7 @@ local EaseQuarticActionInOut = require "cc.EaseQuarticActionInOut"
 local EaseQuinticActionIn = require "cc.EaseQuinticActionIn"
 local EaseQuinticActionOut = require "cc.EaseQuinticActionOut"
 local EaseQuinticActionInOut = require "cc.EaseQuinticActionInOut"
+local PointArray = require "cc.PointArray"
 
 local M = {}
 
@@ -51,12 +60,20 @@ function M.Animate(...)
     return Animate.create(...)
 end
 
-function M.MoveTo(duration, x, y)
-    return MoveTo.create(duration, x, y)
+function M.ActionFloat(...)
+    return ActionFloat.create(...)
 end
 
-function M.MoveBy(duration, x, y)
-    return MoveBy.create(duration, x, y)
+function M.MoveTo(...)
+    return MoveTo.create(...)
+end
+
+function M.MoveBy(...)
+    return MoveBy.create(...)
+end
+
+function M.MoveFrom(...)
+    return MoveFrom.create(...)
 end
 
 function M.CallFunc(func)
@@ -79,6 +96,14 @@ function M.ScaleTo(...)
     return ScaleTo.create(...)
 end
 
+function M.ScaleBy(...)
+    return ScaleBy.create(...)
+end
+
+function M.ScaleFrom(...)
+    return ScaleFrom.create(...)
+end
+
 function M.Speed(...)
     return Speed.create(...)
 end
@@ -92,7 +117,11 @@ function M.RepeatForever(...)
 end
 
 function M.FadeTo(duration, alpha)
-    return FadeTo.create(duration, alpha * 255)
+    return FadeTo.create(duration, alpha * 255 // 1)
+end
+
+function M.FadeFrom(duration, alpha)
+    return FadeFrom.create(duration, alpha * 255 // 1)
 end
 
 function M.FadeIn(...)
@@ -132,6 +161,26 @@ end
 
 function M.RotateTo(...)
     return RotateTo.create(...)
+end
+
+function M.RotateFrom(...)
+    return RotateFrom.create(...)
+end
+
+function M.CatmullRomTo(t, points)
+    local arr = PointArray.create(#points)
+    for _, v in ipairs(points) do
+        arr:addControlPoint(v)
+    end
+    return CatmullRomTo.create(t, arr)
+end
+
+function M.CatmullRomBy(t, points)
+    local arr = PointArray.create(#points)
+    for _, v in ipairs(points) do
+        arr:addControlPoint(v)
+    end
+    return CatmullRomBy.create(t, arr)
 end
 
 function M.EaseRate(...)
@@ -174,16 +223,16 @@ function M.EaseSineInOut(...)
     return EaseSineInOut.create(...)
 end
 
-function M.EaseElasticIn(action, period)
-    return EaseElasticIn.create(action, period or  0.3)
+function M.EaseElasticIn(...)
+    return EaseElasticIn.create(...)
 end
 
-function M.EaseElasticOut(action, period)
-    return EaseElasticOut.create(action, period or  0.3)
+function M.EaseElasticOut(...)
+    return EaseElasticOut.create(...)
 end
 
-function M.EaseElasticInOut(action, period)
-    return EaseElasticInOut.create(action, period or  0.3)
+function M.EaseElasticInOut(...)
+    return EaseElasticInOut.create(...)
 end
 
 function M.EaseBounceIn(...)

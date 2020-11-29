@@ -1,6 +1,6 @@
 -- AUTO BUILD, DON'T MODIFY!
 
-require "autobuild.xgame-types"
+dofile "autobuild/xgame-types.lua"
 
 local olua = require "olua"
 local typeconv = olua.typeconv
@@ -11,20 +11,34 @@ local M = {}
 M.NAME = "xgame"
 M.PATH = "../../frameworks/libxgame/src/lua-bindings"
 M.INCLUDES = [[
-#include "lua-bindings/lua_xgame.h"
-#include "lua-bindings/lua_conv.h"
-#include "lua-bindings/lua_conv_manual.h"
-#include "xgame/filesystem.h"
-#include "xgame/xlua.h"
-#include "xgame/preferences.h"
-#include "xgame/downloader.h"
-#include "xgame/runtime.h"
-#include "xgame/RootScene.h"
-#include "xgame/timer.h"
-#include "olua/olua.hpp"
+    #include "lua-bindings/lua_conv.h"
+    #include "lua-bindings/lua_conv_manual.h"
+    #include "xgame/filesystem.h"
+    #include "xgame/xlua.h"
+    #include "xgame/preferences.h"
+    #include "xgame/downloader.h"
+    #include "xgame/runtime.h"
+    #include "xgame/RootScene.h"
+    #include "xgame/timer.h"
+    #include "xgame/window.h"
+    #include "olua/olua.hpp"
 ]]
 M.CHUNK = [[
-
+    int manual_olua_unpack_xgame_window_Bounds(lua_State *L, const xgame::window::Bounds *value)
+    {
+        if (value) {
+            lua_pushnumber(L, (lua_Number)value->getMinX());
+            lua_pushnumber(L, (lua_Number)value->getMaxX());
+            lua_pushnumber(L, (lua_Number)value->getMaxY());
+            lua_pushnumber(L, (lua_Number)value->getMinY());
+        } else {
+            lua_pushnumber(L, 0);
+            lua_pushnumber(L, 0);
+            lua_pushnumber(L, 0);
+            lua_pushnumber(L, 0);
+        }
+        return 4;
+    }
 ]]
 
 M.CONVS = {
@@ -42,91 +56,91 @@ M.CONVS = {
 M.CLASSES = {}
 
 cls = typecls 'xgame::SceneNoCamera'
-cls.SUPERCLS = "cocos2d::Scene"
-cls.funcs [[
-    static xgame::SceneNoCamera *create()
-    static xgame::SceneNoCamera *createWithSize(const cocos2d::Size &size)
-    static xgame::SceneNoCamera *createWithPhysics()
-    SceneNoCamera()
-]]
+cls.SUPERCLS = 'cocos2d::Scene'
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.func(nil, 'static xgame::SceneNoCamera *create()')
+cls.func(nil, 'static xgame::SceneNoCamera *createWithSize(const cocos2d::Size &size)')
+cls.func(nil, 'static xgame::SceneNoCamera *createWithPhysics()')
+cls.func(nil, 'SceneNoCamera()')
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::Permission'
-cls.enums [[
-    AUDIO
-    CAMERA
-    PHOTO
-]]
+cls.SUPERCLS = nil
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.enum('AUDIO', 'xgame::Permission::AUDIO')
+cls.enum('CAMERA', 'xgame::Permission::CAMERA')
+cls.enum('PHOTO', 'xgame::Permission::PHOTO')
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::PermissionStatus'
-cls.enums [[
-    NOT_DETERMINED
-    RESTRICTED
-    DENIED
-    AUTHORIZED
-]]
+cls.SUPERCLS = nil
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.enum('NOT_DETERMINED', 'xgame::PermissionStatus::NOT_DETERMINED')
+cls.enum('RESTRICTED', 'xgame::PermissionStatus::RESTRICTED')
+cls.enum('DENIED', 'xgame::PermissionStatus::DENIED')
+cls.enum('AUTHORIZED', 'xgame::PermissionStatus::AUTHORIZED')
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::runtime'
-cls.funcs [[
-    static void clearStorage()
-    static bool launch(const std::string &scriptPath)
-    static bool restart()
-    static bool isRestarting()
-    static bool isDebug()
-    static float getTime()
-    static void gc()
-    static const std::string getVersion()
-    static const std::string getPackageName()
-    static const std::string getAppVersion()
-    static const std::string getAppBuild()
-    static const std::string getChannel()
-    static const std::string getOS()
-    static const std::string getDeviceInfo()
-    static const std::string getLanguage()
-    static const std::string getManifestVersion()
-    static void setManifestVersion(const std::string &version)
-    static const std::string getNetworkStatus()
-    static cocos2d::RenderTexture *capture(cocos2d::Node *node, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
-    static const xgame::PermissionStatus getPermissionStatus(xgame::Permission permission)
-    static void setAudioSessionCatalog(const std::string &catalog)
-    static const std::string getAudioSessionCatalog()
-    static std::string getIDFA()
-    static bool isAdvertisingTrackingEnabled()
-    static bool canOpenURL(const std::string &uri)
-    static void setLogPath(const std::string &path)
-    static const std::string getLogPath()
-    static void setSampleCount(unsigned int samples)
-    static unsigned int getSampleCount()
-    static bool support(const std::string &api)
-    static void printSupport()
-    static void disableReport()
-]]
-cls.func('testCrash', [[{
-    xgame::runtime::log("test native crash!!!!");
-    char *prt = NULL;
-    *prt = 0;
-    return 0;
-}]])
-cls.func('setDispatcher', [[{
-    int handler = olua_reffunc(L, 1);
-    xgame::runtime::setDispatcher([handler](const std::string &event, const std::string &args) {
-        lua_State *L = olua_mainthread(NULL);
-        if (L != NULL) {
-            int top = lua_gettop(L);
-            olua_geterrorfunc(L);
-            olua_getref(L, handler);
-            if (lua_isfunction(L, -1)) {
-                lua_pushstring(L, event.c_str());
-                lua_pushstring(L, args.c_str());
-                lua_pcall(L, 2, 0, top + 1);
-            }
-            lua_settop(L, top);
-        }
-    });
-    return 0;
-}]])
+cls.SUPERCLS = nil
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.func('testCrash', [[
+    {
+        xgame::runtime::log("test native crash!!!!");
+        char *prt = NULL;
+        *prt = 0;
+        return 0;
+    }
+]])
+cls.func(nil, 'static void clearStorage()')
+cls.func(nil, 'static bool launch(const std::string &scriptPath)')
+cls.func(nil, 'static bool restart()')
+cls.func(nil, 'static bool isRestarting()')
+cls.func(nil, 'static bool isDebug()')
+cls.func(nil, 'static float getTime()')
+cls.func(nil, 'static void gc()')
+cls.func(nil, 'static const std::string getVersion()')
+cls.func(nil, 'static const std::string getPackageName()')
+cls.func(nil, 'static const std::string getAppVersion()')
+cls.func(nil, 'static const std::string getAppBuild()')
+cls.func(nil, 'static const std::string getChannel()')
+cls.func(nil, 'static const std::string getOS()')
+cls.func(nil, 'static const std::string getDeviceInfo()')
+cls.func(nil, 'static const std::string getLanguage()')
+cls.func(nil, 'static const std::string getManifestVersion()')
+cls.func(nil, 'static void setManifestVersion(const std::string &version)')
+cls.func(nil, 'static const std::string getNetworkStatus()')
+cls.func(nil, 'static cocos2d::RenderTexture *capture(cocos2d::Node *node, float width, float height, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)')
+cls.func(nil, 'static const xgame::PermissionStatus getPermissionStatus(xgame::Permission permission)')
+cls.func(nil, 'static void setAudioSessionCatalog(const std::string &catalog)')
+cls.func(nil, 'static const std::string getAudioSessionCatalog()')
+cls.func(nil, 'static std::string getIDFA()')
+cls.func(nil, 'static bool isAdvertisingTrackingEnabled()')
+cls.func(nil, 'static bool canOpenURL(const std::string &uri)')
+cls.func(nil, 'static void setLogPath(const std::string &path)')
+cls.func(nil, 'static const std::string getLogPath()')
+cls.func(nil, 'static void setSampleCount(unsigned int samples)')
+cls.func(nil, 'static unsigned int getSampleCount()')
+cls.func(nil, 'static bool support(const std::string &api)')
+cls.func(nil, 'static void printSupport()')
+cls.func(nil, 'static void disableReport()')
+cls.callback {
+    FUNCS =  {
+        'static void setDispatcher(@local const std::function<void (const std::string &, const std::string &)> &dispatcher)'
+    },
+    TAG_MAKER = 'Dispatcher',
+    TAG_MODE = 'OLUA_TAG_REPLACE',
+    TAG_STORE = nil,
+    TAG_SCOPE = 'object',
+}
 cls.callback {
     FUNCS =  {
         'static void openURL(const std::string &uri, @local @optional const std::function<void (bool)> callback)'
@@ -154,118 +168,114 @@ cls.callback {
     TAG_STORE = nil,
     TAG_SCOPE = 'once',
 }
-cls.props [[
-    restarting
-    debug
-    time
-    version
-    packageName
-    appVersion
-    appBuild
-    channel
-    os
-    deviceInfo
-    language
-    manifestVersion
-    networkStatus
-    audioSessionCatalog
-    idfa
-    advertisingTrackingEnabled
-    logPath
-    sampleCount
-]]
+cls.prop('restarting', nil, nil)
+cls.prop('debug', nil, nil)
+cls.prop('time', nil, nil)
+cls.prop('version', nil, nil)
+cls.prop('packageName', nil, nil)
+cls.prop('appVersion', nil, nil)
+cls.prop('appBuild', nil, nil)
+cls.prop('channel', nil, nil)
+cls.prop('os', nil, nil)
+cls.prop('deviceInfo', nil, nil)
+cls.prop('language', nil, nil)
+cls.prop('manifestVersion', nil, nil)
+cls.prop('networkStatus', nil, nil)
+cls.prop('audioSessionCatalog', nil, nil)
+cls.prop('idfa', nil, nil)
+cls.prop('advertisingTrackingEnabled', nil, nil)
+cls.prop('logPath', nil, nil)
+cls.prop('sampleCount', nil, nil)
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::filesystem'
-cls.funcs [[
-    static const std::string getWritablePath()
-    static const std::string getCacheDirectory()
-    static const std::string getDocumentDirectory()
-    static const std::string getTmpDirectory()
-    static const std::string getBuiltinCacheDirectory()
-    static const std::string getSDCardDirectory()
-    static void addSearchPath(const std::string &path, @optional bool front)
-    static const std::string shortPath(const std::string &path, @optional size_t limit)
-    static const std::string fullPath(const std::string &path)
-    static bool createDirectory(const std::string &path, @optional bool isFilePath)
-    static bool remove(const std::string &path)
-    static bool exist(const std::string &path)
-    static bool isFile(const std::string &path)
-    static bool isDirectory(const std::string &path)
-    static bool rename(const std::string &oldPath, const std::string &newPath)
-    static bool copy(const std::string &srcPath, const std::string &destPath)
-    static cocos2d::Data read(const std::string &path)
-    static bool unzip(const std::string &path, const std::string &dest)
-]]
-cls.func('write', [[{
-    size_t len;
-    std::string path = olua_tostring(L, 1);
-    const char *data = olua_checklstring(L, 2, &len);
-    bool ret = (bool)xgame::filesystem::write(path, data, len);
-    olua_push_bool(L, ret);
-    return 1;
-}]])
-cls.props [[
-    writablePath
-    cacheDirectory
-    documentDirectory
-    tmpDirectory
-    builtinCacheDirectory
-    sdCardDirectory
-]]
+cls.SUPERCLS = nil
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.func(nil, 'static const std::string getWritablePath()')
+cls.func(nil, 'static const std::string getCacheDirectory()')
+cls.func(nil, 'static const std::string getDocumentDirectory()')
+cls.func(nil, 'static const std::string getTmpDirectory()')
+cls.func(nil, 'static const std::string getBuiltinCacheDirectory()')
+cls.func(nil, 'static const std::string getSDCardDirectory()')
+cls.func(nil, 'static void addSearchPath(const std::string &path, @optional bool front)')
+cls.func(nil, 'static const std::string shortPath(const std::string &path, @optional size_t limit)')
+cls.func(nil, 'static const std::string fullPath(const std::string &path)')
+cls.func(nil, 'static bool createDirectory(const std::string &path, @optional bool isFilePath)')
+cls.func(nil, 'static bool remove(const std::string &path)')
+cls.func(nil, 'static bool exist(const std::string &path)')
+cls.func(nil, 'static bool isFile(const std::string &path)')
+cls.func(nil, 'static bool isDirectory(const std::string &path)')
+cls.func(nil, 'static bool rename(const std::string &oldPath, const std::string &newPath)')
+cls.func(nil, 'static bool copy(const std::string &srcPath, const std::string &destPath)')
+cls.func(nil, 'static bool write(const std::string &path, const char *data, size_t len)', 'static bool write(const std::string &path, const cocos2d::Data &data)')
+cls.func(nil, 'static cocos2d::Data read(const std::string &path)')
+cls.func(nil, 'static bool unzip(const std::string &path, const std::string &dest)')
+cls.prop('writablePath', nil, nil)
+cls.prop('cacheDirectory', nil, nil)
+cls.prop('documentDirectory', nil, nil)
+cls.prop('tmpDirectory', nil, nil)
+cls.prop('builtinCacheDirectory', nil, nil)
+cls.prop('sdCardDirectory', nil, nil)
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::preferences'
-cls.funcs [[
-    static bool getBoolean(const char *key, @optional bool defaultValue)
-    static void setBoolean(const char *key, bool value)
-    static float getFloat(const char *key, @optional float defaultValue)
-    static void setFloat(const char *key, float value)
-    static double getDouble(const char *key, @optional double defaultValue)
-    static void setDouble(const char *key, double value)
-    static int getInteger(const char *key, @optional int defaultValue)
-    static void setInteger(const char *key, int value)
-    static std::string getString(const char *key, @optional const char *defaultValue)
-    static void setString(const char *key, const char *value)
-    static void deleteKey(const char *key)
-    static void flush()
-]]
+cls.SUPERCLS = nil
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.func(nil, 'static bool getBoolean(const char *key, @optional bool defaultValue)')
+cls.func(nil, 'static void setBoolean(const char *key, bool value)')
+cls.func(nil, 'static float getFloat(const char *key, @optional float defaultValue)')
+cls.func(nil, 'static void setFloat(const char *key, float value)')
+cls.func(nil, 'static double getDouble(const char *key, @optional double defaultValue)')
+cls.func(nil, 'static void setDouble(const char *key, double value)')
+cls.func(nil, 'static int getInteger(const char *key, @optional int defaultValue)')
+cls.func(nil, 'static void setInteger(const char *key, int value)')
+cls.func(nil, 'static std::string getString(const char *key, @optional const char *defaultValue)')
+cls.func(nil, 'static void setString(const char *key, const char *value)')
+cls.func(nil, 'static void deleteKey(const char *key)')
+cls.func(nil, 'static void flush()')
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::timer'
-cls.CHUNK = [[
-#define makeTimerDelayTag(tag) ("delayTag." + tag)
-]]
-cls.funcs [[
-    static std::string createTag()
-]]
-cls.func('schedule', [[{
-    float interval = (float)olua_checknumber(L, 1);
-    uint32_t callback = olua_reffunc(L, 2);
-    uint32_t id = xgame::timer::schedule(interval, [callback](float dt) {
-        lua_State *L = olua_mainthread(NULL);
-        if (L != NULL) {
-            int top = lua_gettop(L);
-            olua_geterrorfunc(L);
-            olua_getref(L, callback);
-            if (lua_isfunction(L, -1)) {
-                lua_pushnumber(L, dt);
-                lua_pcall(L, 1, 0, top + 1);
+cls.SUPERCLS = nil
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = [[#define makeTimerDelayTag(tag) ("delayTag." + tag)]]
+cls.func('schedule', [[
+    {
+        float interval = (float)olua_checknumber(L, 1);
+        uint32_t callback = olua_funcref(L, 2);
+        uint32_t id = xgame::timer::schedule(interval, [callback](float dt) {
+            lua_State *L = olua_mainthread(NULL);
+            if (L != NULL) {
+                int top = lua_gettop(L);
+                olua_pusherrorfunc(L);
+                olua_getref(L, callback);
+                if (lua_isfunction(L, -1)) {
+                    lua_pushnumber(L, dt);
+                    lua_pcall(L, 1, 0, top + 1);
+                }
+                lua_settop(L, top);
             }
-            lua_settop(L, top);
-        }
-    });
-    lua_pushinteger(L, ((uint64_t)callback << 32) | (uint64_t)id);
-    return 1;
-}]])
-cls.func('unschedule', [[{
-    uint64_t value = olua_checkinteger(L, 1);
-    uint32_t callback = value >> 32;
-    uint32_t id = value & 0xFFFFFFFF;
-    olua_unref(L, callback);
-    xgame::timer::unschedule(id);
-    return 0;
-}]])
+        });
+        lua_pushinteger(L, ((uint64_t)callback << 32) | (uint64_t)id);
+        return 1;
+    }
+]])
+cls.func('unschedule', [[
+    {
+        uint64_t value = olua_checkinteger(L, 1);
+        uint32_t callback = value >> 32;
+        uint32_t id = value & 0xFFFFFFFF;
+        olua_unref(L, callback);
+        xgame::timer::unschedule(id);
+        return 0;
+    }
+]])
+cls.func(nil, 'static std::string createTag()')
 cls.callback {
     FUNCS =  {
         'static void delayWithTag(float time, const std::string &tag, @local std::function<void ()> callback)'
@@ -296,80 +306,42 @@ cls.callback {
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::window'
-cls.REG_LUATYPE = false
-cls.funcs [[
-]]
-cls.func('getVisibleBounds', [[{
-    auto rect = cocos2d::Director::getInstance()->getOpenGLView()->getVisibleRect();
-    lua_pushinteger(L, rect.getMinX());
-    lua_pushinteger(L, rect.getMaxX());
-    lua_pushinteger(L, rect.getMaxY());
-    lua_pushinteger(L, rect.getMinY());
-    return 4;
-}]])
-cls.func('getVisibleSize', [[{
-    auto rect = cocos2d::Director::getInstance()->getOpenGLView()->getVisibleRect();
-    lua_pushinteger(L, rect.size.width);
-    lua_pushinteger(L, rect.size.height);
-    return 2;
-}]])
-cls.func('getFrameSize', [[{
-    auto size = cocos2d::Director::getInstance()->getOpenGLView()->getFrameSize();
-    lua_pushnumber(L, size.width);
-    lua_pushnumber(L, size.height);
-    return 2;
-}]])
-cls.func('setFrameSize', [[{
-    auto glView = cocos2d::Director::getInstance()->getOpenGLView();
-    float width = (float)olua_checknumber(L, 1);
-    float height = (float)olua_checknumber(L, 2);
-    xgame::preferences::setFloat(CONF_WINDOW_WIDTH, width);
-    xgame::preferences::setFloat(CONF_WINDOW_HEIGHT, height);
-    glView->setFrameSize(width, height);
-    return 0;
-}]])
-cls.func('getDesignSize', [[{
-    auto size = cocos2d::Director::getInstance()->getOpenGLView()->getDesignResolutionSize();
-    lua_pushnumber(L, size.width);
-    lua_pushnumber(L, size.height);
-    return 2;
-}]])
-cls.func('setDesignSize', [[{
-    cocos2d::Director::getInstance()->getOpenGLView()->setDesignResolutionSize(
-        (float)olua_checknumber(L, 1), (float)olua_checknumber(L, 2),
-        (ResolutionPolicy)olua_checkinteger(L, 3));
-    return 0;
-}]])
-cls.func('convertToCameraSpace', [[{
-    cocos2d::Rect rect;
-    cocos2d::Vec3 out;
-    auto director = cocos2d::Director::getInstance();
-    auto pt = cocos2d::Vec2(olua_checknumber(L, 1), olua_checknumber(L, 2));
-    auto runningScene = director->getRunningScene();
-    auto w2l = runningScene->getWorldToNodeTransform();
-    rect.size = director->getOpenGLView()->getDesignResolutionSize();
-    cocos2d::isScreenPointInRect(pt, runningScene->getDefaultCamera(), w2l, rect, &out);
-    lua_pushnumber(L, out.x);
-    lua_pushnumber(L, out.y);
-    return 2;
-}]])
+cls.SUPERCLS = nil
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.func(nil, '@unpack static xgame::window::Bounds getVisibleBounds()')
+cls.func(nil, '@unpack static cocos2d::Size getVisibleSize()')
+cls.func(nil, '@unpack static cocos2d::Size getFrameSize()')
+cls.func(nil, 'static void setFrameSize(@pack const cocos2d::Size &size)')
+cls.func(nil, '@unpack static cocos2d::Size getDesignSize()')
+cls.func(nil, 'static void setDesignSize(@pack const cocos2d::Size &size, ResolutionPolicy resolutionPolicy)')
+cls.func(nil, 'static cocos2d::Vec2 convertToCameraSpace(@pack const cocos2d::Vec2 &position)')
+cls.prop('visibleBounds', nil, nil)
+cls.prop('visibleSize', nil, nil)
+cls.prop('frameSize', nil, nil)
+cls.prop('designSize', nil, nil)
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::downloader::FileState'
-cls.enums [[
-    IOERROR
-    LOADED
-    PENDING
-    INVALID
-]]
+cls.SUPERCLS = nil
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.enum('IOERROR', 'xgame::downloader::FileState::IOERROR')
+cls.enum('LOADED', 'xgame::downloader::FileState::LOADED')
+cls.enum('PENDING', 'xgame::downloader::FileState::PENDING')
+cls.enum('INVALID', 'xgame::downloader::FileState::INVALID')
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::downloader'
-cls.funcs [[
-    static void load(const xgame::downloader::FileTask &task)
-    static void init()
-    static void end()
-]]
+cls.SUPERCLS = nil
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.func(nil, 'static void load(const xgame::downloader::FileTask &task)')
+cls.func(nil, 'static void init()')
+cls.func(nil, 'static void end()')
 cls.callback {
     FUNCS =  {
         'static void setDispatcher(@local const std::function<void (const FileTask &)> callback)'
@@ -382,14 +354,13 @@ cls.callback {
 M.CLASSES[#M.CLASSES + 1] = cls
 
 cls = typecls 'xgame::MaskLayout'
-cls.SUPERCLS = "cocos2d::ui::Layout"
-cls.funcs [[
-    static xgame::MaskLayout *create()
-    cocos2d::DrawNode *getClippingNode()
-]]
-cls.props [[
-    clippingNode
-]]
+cls.SUPERCLS = 'cocos2d::ui::Layout'
+cls.REG_LUATYPE = true
+cls.DEFIF = nil
+cls.CHUNK = nil
+cls.func(nil, 'static xgame::MaskLayout *create()')
+cls.func(nil, 'cocos2d::DrawNode *getClippingNode()')
+cls.prop('clippingNode', nil, nil)
 M.CLASSES[#M.CLASSES + 1] = cls
 
 return M

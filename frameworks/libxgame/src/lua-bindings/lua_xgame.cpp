@@ -1,7 +1,7 @@
 //
 // AUTO BUILD, DON'T MODIFY!
 //
-#include "lua-bindings/lua_xgame.h"
+#include "lua_xgame.h"
 #include "lua-bindings/lua_conv.h"
 #include "lua-bindings/lua_conv_manual.h"
 #include "xgame/filesystem.h"
@@ -11,9 +11,24 @@
 #include "xgame/runtime.h"
 #include "xgame/RootScene.h"
 #include "xgame/timer.h"
+#include "xgame/window.h"
 #include "olua/olua.hpp"
 
-
+int manual_olua_unpack_xgame_window_Bounds(lua_State *L, const xgame::window::Bounds *value)
+{
+    if (value) {
+        lua_pushnumber(L, (lua_Number)value->getMinX());
+        lua_pushnumber(L, (lua_Number)value->getMaxX());
+        lua_pushnumber(L, (lua_Number)value->getMaxY());
+        lua_pushnumber(L, (lua_Number)value->getMinY());
+    } else {
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+    }
+    return 4;
+}
 
 int auto_olua_push_xgame_downloader_FileTask(lua_State *L, const xgame::downloader::FileTask *value)
 {
@@ -144,7 +159,7 @@ static int _xgame_SceneNoCamera_create(lua_State *L)
     olua_startinvoke(L);
 
     // static xgame::SceneNoCamera *create()
-    xgame::SceneNoCamera *ret = (xgame::SceneNoCamera *)xgame::SceneNoCamera::create();
+    xgame::SceneNoCamera *ret = xgame::SceneNoCamera::create();
     int num_ret = olua_push_cppobj(L, ret, "kernel.SceneNoCamera");
 
     olua_endinvoke(L);
@@ -157,7 +172,7 @@ static int _xgame_SceneNoCamera_createWithPhysics(lua_State *L)
     olua_startinvoke(L);
 
     // static xgame::SceneNoCamera *createWithPhysics()
-    xgame::SceneNoCamera *ret = (xgame::SceneNoCamera *)xgame::SceneNoCamera::createWithPhysics();
+    xgame::SceneNoCamera *ret = xgame::SceneNoCamera::createWithPhysics();
     int num_ret = olua_push_cppobj(L, ret, "kernel.SceneNoCamera");
 
     olua_endinvoke(L);
@@ -174,7 +189,7 @@ static int _xgame_SceneNoCamera_createWithSize(lua_State *L)
     auto_olua_check_cocos2d_Size(L, 1, &arg1);
 
     // static xgame::SceneNoCamera *createWithSize(const cocos2d::Size &size)
-    xgame::SceneNoCamera *ret = (xgame::SceneNoCamera *)xgame::SceneNoCamera::createWithSize(arg1);
+    xgame::SceneNoCamera *ret = xgame::SceneNoCamera::createWithSize(arg1);
     int num_ret = olua_push_cppobj(L, ret, "kernel.SceneNoCamera");
 
     olua_endinvoke(L);
@@ -187,7 +202,7 @@ static int _xgame_SceneNoCamera_new(lua_State *L)
     olua_startinvoke(L);
 
     // SceneNoCamera()
-    xgame::SceneNoCamera *ret = (xgame::SceneNoCamera *)new xgame::SceneNoCamera();
+    xgame::SceneNoCamera *ret = new xgame::SceneNoCamera();
     int num_ret = olua_push_cppobj(L, ret, "kernel.SceneNoCamera");
     olua_postnew(L, ret);
 
@@ -262,20 +277,20 @@ static int _xgame_runtime_alert(lua_State *L)
     olua_check_std_string(L, 3, &arg3);
     olua_check_std_string(L, 4, &arg4);
 
-    void *self_obj = (void *)olua_pushclassobj(L, "kernel.runtime");
-    std::string tag = "alert";
-    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 5, OLUA_TAG_NEW);
-    lua_Unsigned ctx = olua_context(L);
-    arg5 = [self_obj, func, ctx](bool arg1) {
+    void *cb_store = (void *)olua_pushclassobj(L, "kernel.runtime");
+    std::string cb_tag = "alert";
+    std::string cb_name = olua_setcallback(L, cb_store, cb_tag.c_str(), 5, OLUA_TAG_NEW);
+    lua_Integer cb_ctx = olua_context(L);
+    arg5 = [cb_store, cb_name, cb_ctx](bool arg1) {
         lua_State *L = olua_mainthread(NULL);
 
-        if (L != NULL && (olua_context(L) == ctx)) {
+        if (L != NULL && olua_context(L) == cb_ctx) {
             int top = lua_gettop(L);
             olua_push_bool(L, arg1);
 
-            olua_callback(L, self_obj, func.c_str(), 1);
+            olua_callback(L, cb_store, cb_name.c_str(), 1);
 
-            olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
+            olua_removecallback(L, cb_store, cb_name.c_str(), OLUA_TAG_WHOLE);
 
             lua_settop(L, top);
         }
@@ -298,7 +313,7 @@ static int _xgame_runtime_canOpenURL(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static bool canOpenURL(const std::string &uri)
-    bool ret = (bool)xgame::runtime::canOpenURL(arg1);
+    bool ret = xgame::runtime::canOpenURL(arg1);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -311,15 +326,19 @@ static int _xgame_runtime_capture1(lua_State *L)
     olua_startinvoke(L);
 
     cocos2d::Node *arg1 = nullptr;       /** node */
-    lua_Unsigned arg2 = 0;       /** format */
-    lua_Unsigned arg3 = 0;       /** depthStencilFormat */
+    lua_Number arg2 = 0;       /** width */
+    lua_Number arg3 = 0;       /** height */
+    lua_Unsigned arg4 = 0;       /** format */
+    lua_Unsigned arg5 = 0;       /** depthStencilFormat */
 
     olua_check_cppobj(L, 1, (void **)&arg1, "cc.Node");
-    olua_check_uint(L, 2, &arg2);
-    olua_check_uint(L, 3, &arg3);
+    olua_check_number(L, 2, &arg2);
+    olua_check_number(L, 3, &arg3);
+    olua_check_uint(L, 4, &arg4);
+    olua_check_uint(L, 5, &arg5);
 
-    // static cocos2d::RenderTexture *capture(cocos2d::Node *node, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
-    cocos2d::RenderTexture *ret = (cocos2d::RenderTexture *)xgame::runtime::capture(arg1, (cocos2d::backend::PixelFormat)arg2, (cocos2d::backend::PixelFormat)arg3);
+    // static cocos2d::RenderTexture *capture(cocos2d::Node *node, float width, float height, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
+    cocos2d::RenderTexture *ret = xgame::runtime::capture(arg1, (float)arg2, (float)arg3, (cocos2d::backend::PixelFormat)arg4, (cocos2d::backend::PixelFormat)arg5);
     int num_ret = olua_push_cppobj(L, ret, "cc.RenderTexture");
 
     olua_endinvoke(L);
@@ -332,11 +351,15 @@ static int _xgame_runtime_capture2(lua_State *L)
     olua_startinvoke(L);
 
     cocos2d::Node *arg1 = nullptr;       /** node */
+    lua_Number arg2 = 0;       /** width */
+    lua_Number arg3 = 0;       /** height */
 
     olua_check_cppobj(L, 1, (void **)&arg1, "cc.Node");
+    olua_check_number(L, 2, &arg2);
+    olua_check_number(L, 3, &arg3);
 
-    // static cocos2d::RenderTexture *capture(cocos2d::Node *node, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
-    cocos2d::RenderTexture *ret = (cocos2d::RenderTexture *)xgame::runtime::capture(arg1);
+    // static cocos2d::RenderTexture *capture(cocos2d::Node *node, float width, float height, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
+    cocos2d::RenderTexture *ret = xgame::runtime::capture(arg1, (float)arg2, (float)arg3);
     int num_ret = olua_push_cppobj(L, ret, "cc.RenderTexture");
 
     olua_endinvoke(L);
@@ -349,13 +372,17 @@ static int _xgame_runtime_capture3(lua_State *L)
     olua_startinvoke(L);
 
     cocos2d::Node *arg1 = nullptr;       /** node */
-    lua_Unsigned arg2 = 0;       /** format */
+    lua_Number arg2 = 0;       /** width */
+    lua_Number arg3 = 0;       /** height */
+    lua_Unsigned arg4 = 0;       /** format */
 
     olua_check_cppobj(L, 1, (void **)&arg1, "cc.Node");
-    olua_check_uint(L, 2, &arg2);
+    olua_check_number(L, 2, &arg2);
+    olua_check_number(L, 3, &arg3);
+    olua_check_uint(L, 4, &arg4);
 
-    // static cocos2d::RenderTexture *capture(cocos2d::Node *node, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
-    cocos2d::RenderTexture *ret = (cocos2d::RenderTexture *)xgame::runtime::capture(arg1, (cocos2d::backend::PixelFormat)arg2);
+    // static cocos2d::RenderTexture *capture(cocos2d::Node *node, float width, float height, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
+    cocos2d::RenderTexture *ret = xgame::runtime::capture(arg1, (float)arg2, (float)arg3, (cocos2d::backend::PixelFormat)arg4);
     int num_ret = olua_push_cppobj(L, ret, "cc.RenderTexture");
 
     olua_endinvoke(L);
@@ -367,23 +394,23 @@ static int _xgame_runtime_capture(lua_State *L)
 {
     int num_args = lua_gettop(L);
 
-    if (num_args == 1) {
-        // if ((olua_is_cppobj(L, 1, "cc.Node"))) {
-            // static cocos2d::RenderTexture *capture(cocos2d::Node *node, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
+    if (num_args == 3) {
+        // if ((olua_is_cppobj(L, 1, "cc.Node")) && (olua_is_number(L, 2)) && (olua_is_number(L, 3))) {
+            // static cocos2d::RenderTexture *capture(cocos2d::Node *node, float width, float height, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
             return _xgame_runtime_capture2(L);
         // }
     }
 
-    if (num_args == 2) {
-        // if ((olua_is_cppobj(L, 1, "cc.Node")) && (olua_is_uint(L, 2))) {
-            // static cocos2d::RenderTexture *capture(cocos2d::Node *node, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
+    if (num_args == 4) {
+        // if ((olua_is_cppobj(L, 1, "cc.Node")) && (olua_is_number(L, 2)) && (olua_is_number(L, 3)) && (olua_is_uint(L, 4))) {
+            // static cocos2d::RenderTexture *capture(cocos2d::Node *node, float width, float height, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
             return _xgame_runtime_capture3(L);
         // }
     }
 
-    if (num_args == 3) {
-        // if ((olua_is_cppobj(L, 1, "cc.Node")) && (olua_is_uint(L, 2)) && (olua_is_uint(L, 3))) {
-            // static cocos2d::RenderTexture *capture(cocos2d::Node *node, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
+    if (num_args == 5) {
+        // if ((olua_is_cppobj(L, 1, "cc.Node")) && (olua_is_number(L, 2)) && (olua_is_number(L, 3)) && (olua_is_uint(L, 4)) && (olua_is_uint(L, 5))) {
+            // static cocos2d::RenderTexture *capture(cocos2d::Node *node, float width, float height, @optional cocos2d::backend::PixelFormat format, @optional cocos2d::backend::PixelFormat depthStencilFormat)
             return _xgame_runtime_capture1(L);
         // }
     }
@@ -434,7 +461,7 @@ static int _xgame_runtime_getAppBuild(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getAppBuild()
-    const std::string ret = (const std::string)xgame::runtime::getAppBuild();
+    const std::string ret = xgame::runtime::getAppBuild();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -447,7 +474,7 @@ static int _xgame_runtime_getAppVersion(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getAppVersion()
-    const std::string ret = (const std::string)xgame::runtime::getAppVersion();
+    const std::string ret = xgame::runtime::getAppVersion();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -460,7 +487,7 @@ static int _xgame_runtime_getAudioSessionCatalog(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getAudioSessionCatalog()
-    const std::string ret = (const std::string)xgame::runtime::getAudioSessionCatalog();
+    const std::string ret = xgame::runtime::getAudioSessionCatalog();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -473,7 +500,7 @@ static int _xgame_runtime_getChannel(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getChannel()
-    const std::string ret = (const std::string)xgame::runtime::getChannel();
+    const std::string ret = xgame::runtime::getChannel();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -486,7 +513,7 @@ static int _xgame_runtime_getDeviceInfo(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getDeviceInfo()
-    const std::string ret = (const std::string)xgame::runtime::getDeviceInfo();
+    const std::string ret = xgame::runtime::getDeviceInfo();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -499,7 +526,7 @@ static int _xgame_runtime_getIDFA(lua_State *L)
     olua_startinvoke(L);
 
     // static std::string getIDFA()
-    std::string ret = (std::string)xgame::runtime::getIDFA();
+    std::string ret = xgame::runtime::getIDFA();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -512,7 +539,7 @@ static int _xgame_runtime_getLanguage(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getLanguage()
-    const std::string ret = (const std::string)xgame::runtime::getLanguage();
+    const std::string ret = xgame::runtime::getLanguage();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -525,7 +552,7 @@ static int _xgame_runtime_getLogPath(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getLogPath()
-    const std::string ret = (const std::string)xgame::runtime::getLogPath();
+    const std::string ret = xgame::runtime::getLogPath();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -538,7 +565,7 @@ static int _xgame_runtime_getManifestVersion(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getManifestVersion()
-    const std::string ret = (const std::string)xgame::runtime::getManifestVersion();
+    const std::string ret = xgame::runtime::getManifestVersion();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -551,7 +578,7 @@ static int _xgame_runtime_getNetworkStatus(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getNetworkStatus()
-    const std::string ret = (const std::string)xgame::runtime::getNetworkStatus();
+    const std::string ret = xgame::runtime::getNetworkStatus();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -564,7 +591,7 @@ static int _xgame_runtime_getOS(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getOS()
-    const std::string ret = (const std::string)xgame::runtime::getOS();
+    const std::string ret = xgame::runtime::getOS();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -577,7 +604,7 @@ static int _xgame_runtime_getPackageName(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getPackageName()
-    const std::string ret = (const std::string)xgame::runtime::getPackageName();
+    const std::string ret = xgame::runtime::getPackageName();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -594,7 +621,7 @@ static int _xgame_runtime_getPermissionStatus(lua_State *L)
     olua_check_uint(L, 1, &arg1);
 
     // static const xgame::PermissionStatus getPermissionStatus(xgame::Permission permission)
-    const xgame::PermissionStatus ret = (const xgame::PermissionStatus)xgame::runtime::getPermissionStatus((xgame::Permission)arg1);
+    const xgame::PermissionStatus ret = xgame::runtime::getPermissionStatus((xgame::Permission)arg1);
     int num_ret = olua_push_uint(L, (lua_Unsigned)ret);
 
     olua_endinvoke(L);
@@ -607,7 +634,7 @@ static int _xgame_runtime_getSampleCount(lua_State *L)
     olua_startinvoke(L);
 
     // static unsigned int getSampleCount()
-    unsigned int ret = (unsigned int)xgame::runtime::getSampleCount();
+    unsigned int ret = xgame::runtime::getSampleCount();
     int num_ret = olua_push_uint(L, (lua_Unsigned)ret);
 
     olua_endinvoke(L);
@@ -620,7 +647,7 @@ static int _xgame_runtime_getTime(lua_State *L)
     olua_startinvoke(L);
 
     // static float getTime()
-    float ret = (float)xgame::runtime::getTime();
+    float ret = xgame::runtime::getTime();
     int num_ret = olua_push_number(L, (lua_Number)ret);
 
     olua_endinvoke(L);
@@ -633,7 +660,7 @@ static int _xgame_runtime_getVersion(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getVersion()
-    const std::string ret = (const std::string)xgame::runtime::getVersion();
+    const std::string ret = xgame::runtime::getVersion();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -646,7 +673,7 @@ static int _xgame_runtime_isAdvertisingTrackingEnabled(lua_State *L)
     olua_startinvoke(L);
 
     // static bool isAdvertisingTrackingEnabled()
-    bool ret = (bool)xgame::runtime::isAdvertisingTrackingEnabled();
+    bool ret = xgame::runtime::isAdvertisingTrackingEnabled();
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -659,7 +686,7 @@ static int _xgame_runtime_isDebug(lua_State *L)
     olua_startinvoke(L);
 
     // static bool isDebug()
-    bool ret = (bool)xgame::runtime::isDebug();
+    bool ret = xgame::runtime::isDebug();
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -672,7 +699,7 @@ static int _xgame_runtime_isRestarting(lua_State *L)
     olua_startinvoke(L);
 
     // static bool isRestarting()
-    bool ret = (bool)xgame::runtime::isRestarting();
+    bool ret = xgame::runtime::isRestarting();
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -689,7 +716,7 @@ static int _xgame_runtime_launch(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static bool launch(const std::string &scriptPath)
-    bool ret = (bool)xgame::runtime::launch(arg1);
+    bool ret = xgame::runtime::launch(arg1);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -706,21 +733,22 @@ static int _xgame_runtime_openURL1(lua_State *L)
 
     olua_check_std_string(L, 1, &arg1);
 
+    void *cb_store = (void *)olua_pushclassobj(L, "kernel.runtime");
+    std::string cb_tag = "openURL";
+    std::string cb_name;
     if (olua_is_std_function(L, 2)) {
-        void *self_obj = (void *)olua_pushclassobj(L, "kernel.runtime");
-        std::string tag = "openURL";
-        std::string func = olua_setcallback(L, self_obj, tag.c_str(), 2, OLUA_TAG_NEW);
-        lua_Unsigned ctx = olua_context(L);
-        arg2 = [self_obj, func, ctx](bool arg1) {
+        cb_name = olua_setcallback(L, cb_store, cb_tag.c_str(), 2, OLUA_TAG_NEW);
+        lua_Integer cb_ctx = olua_context(L);
+        arg2 = [cb_store, cb_name, cb_ctx](bool arg1) {
             lua_State *L = olua_mainthread(NULL);
 
-            if (L != NULL && (olua_context(L) == ctx)) {
+            if (L != NULL && olua_context(L) == cb_ctx) {
                 int top = lua_gettop(L);
                 olua_push_bool(L, arg1);
 
-                olua_callback(L, self_obj, func.c_str(), 1);
+                olua_callback(L, cb_store, cb_name.c_str(), 1);
 
-                olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
+                olua_removecallback(L, cb_store, cb_name.c_str(), OLUA_TAG_WHOLE);
 
                 lua_settop(L, top);
             }
@@ -797,20 +825,20 @@ static int _xgame_runtime_requestPermission(lua_State *L)
 
     olua_check_uint(L, 1, &arg1);
 
-    void *self_obj = (void *)olua_pushclassobj(L, "kernel.runtime");
-    std::string tag = "requestPermission";
-    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 2, OLUA_TAG_NEW);
-    lua_Unsigned ctx = olua_context(L);
-    arg2 = [self_obj, func, ctx](xgame::PermissionStatus arg1) {
+    void *cb_store = (void *)olua_pushclassobj(L, "kernel.runtime");
+    std::string cb_tag = "requestPermission";
+    std::string cb_name = olua_setcallback(L, cb_store, cb_tag.c_str(), 2, OLUA_TAG_NEW);
+    lua_Integer cb_ctx = olua_context(L);
+    arg2 = [cb_store, cb_name, cb_ctx](xgame::PermissionStatus arg1) {
         lua_State *L = olua_mainthread(NULL);
 
-        if (L != NULL && (olua_context(L) == ctx)) {
+        if (L != NULL && olua_context(L) == cb_ctx) {
             int top = lua_gettop(L);
             olua_push_uint(L, (lua_Unsigned)arg1);
 
-            olua_callback(L, self_obj, func.c_str(), 1);
+            olua_callback(L, cb_store, cb_name.c_str(), 1);
 
-            olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
+            olua_removecallback(L, cb_store, cb_name.c_str(), OLUA_TAG_WHOLE);
 
             lua_settop(L, top);
         }
@@ -829,7 +857,7 @@ static int _xgame_runtime_restart(lua_State *L)
     olua_startinvoke(L);
 
     // static bool restart()
-    bool ret = (bool)xgame::runtime::restart();
+    bool ret = xgame::runtime::restart();
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -857,21 +885,28 @@ static int _xgame_runtime_setDispatcher(lua_State *L)
 {
     olua_startinvoke(L);
 
-    int handler = olua_reffunc(L, 1);
-    xgame::runtime::setDispatcher([handler](const std::string &event, const std::string &args) {
+    std::function<void(const std::string &, const std::string &)> arg1;       /** dispatcher */
+
+    void *cb_store = (void *)olua_pushclassobj(L, "kernel.runtime");
+    std::string cb_tag = "Dispatcher";
+    std::string cb_name = olua_setcallback(L, cb_store, cb_tag.c_str(), 1, OLUA_TAG_REPLACE);
+    lua_Integer cb_ctx = olua_context(L);
+    arg1 = [cb_store, cb_name, cb_ctx](const std::string &arg1, const std::string &arg2) {
         lua_State *L = olua_mainthread(NULL);
-        if (L != NULL) {
+
+        if (L != NULL && olua_context(L) == cb_ctx) {
             int top = lua_gettop(L);
-            olua_geterrorfunc(L);
-            olua_getref(L, handler);
-            if (lua_isfunction(L, -1)) {
-                lua_pushstring(L, event.c_str());
-                lua_pushstring(L, args.c_str());
-                lua_pcall(L, 2, 0, top + 1);
-            }
+            olua_push_std_string(L, arg1);
+            olua_push_std_string(L, arg2);
+
+            olua_callback(L, cb_store, cb_name.c_str(), 2);
+
             lua_settop(L, top);
         }
-    });
+    };
+
+    // static void setDispatcher(@local const std::function<void (const std::string &, const std::string &)> &dispatcher)
+    xgame::runtime::setDispatcher(arg1);
 
     olua_endinvoke(L);
 
@@ -935,7 +970,7 @@ static int _xgame_runtime_support(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static bool support(const std::string &api)
-    bool ret = (bool)xgame::runtime::support(arg1);
+    bool ret = xgame::runtime::support(arg1);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1101,7 +1136,7 @@ static int _xgame_filesystem_copy(lua_State *L)
     olua_check_std_string(L, 2, &arg2);
 
     // static bool copy(const std::string &srcPath, const std::string &destPath)
-    bool ret = (bool)xgame::filesystem::copy(arg1, arg2);
+    bool ret = xgame::filesystem::copy(arg1, arg2);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1120,7 +1155,7 @@ static int _xgame_filesystem_createDirectory1(lua_State *L)
     olua_check_bool(L, 2, &arg2);
 
     // static bool createDirectory(const std::string &path, @optional bool isFilePath)
-    bool ret = (bool)xgame::filesystem::createDirectory(arg1, arg2);
+    bool ret = xgame::filesystem::createDirectory(arg1, arg2);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1137,7 +1172,7 @@ static int _xgame_filesystem_createDirectory2(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static bool createDirectory(const std::string &path, @optional bool isFilePath)
-    bool ret = (bool)xgame::filesystem::createDirectory(arg1);
+    bool ret = xgame::filesystem::createDirectory(arg1);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1177,7 +1212,7 @@ static int _xgame_filesystem_exist(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static bool exist(const std::string &path)
-    bool ret = (bool)xgame::filesystem::exist(arg1);
+    bool ret = xgame::filesystem::exist(arg1);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1194,7 +1229,7 @@ static int _xgame_filesystem_fullPath(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static const std::string fullPath(const std::string &path)
-    const std::string ret = (const std::string)xgame::filesystem::fullPath(arg1);
+    const std::string ret = xgame::filesystem::fullPath(arg1);
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1207,7 +1242,7 @@ static int _xgame_filesystem_getBuiltinCacheDirectory(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getBuiltinCacheDirectory()
-    const std::string ret = (const std::string)xgame::filesystem::getBuiltinCacheDirectory();
+    const std::string ret = xgame::filesystem::getBuiltinCacheDirectory();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1220,7 +1255,7 @@ static int _xgame_filesystem_getCacheDirectory(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getCacheDirectory()
-    const std::string ret = (const std::string)xgame::filesystem::getCacheDirectory();
+    const std::string ret = xgame::filesystem::getCacheDirectory();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1233,7 +1268,7 @@ static int _xgame_filesystem_getDocumentDirectory(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getDocumentDirectory()
-    const std::string ret = (const std::string)xgame::filesystem::getDocumentDirectory();
+    const std::string ret = xgame::filesystem::getDocumentDirectory();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1246,7 +1281,7 @@ static int _xgame_filesystem_getSDCardDirectory(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getSDCardDirectory()
-    const std::string ret = (const std::string)xgame::filesystem::getSDCardDirectory();
+    const std::string ret = xgame::filesystem::getSDCardDirectory();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1259,7 +1294,7 @@ static int _xgame_filesystem_getTmpDirectory(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getTmpDirectory()
-    const std::string ret = (const std::string)xgame::filesystem::getTmpDirectory();
+    const std::string ret = xgame::filesystem::getTmpDirectory();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1272,7 +1307,7 @@ static int _xgame_filesystem_getWritablePath(lua_State *L)
     olua_startinvoke(L);
 
     // static const std::string getWritablePath()
-    const std::string ret = (const std::string)xgame::filesystem::getWritablePath();
+    const std::string ret = xgame::filesystem::getWritablePath();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1289,7 +1324,7 @@ static int _xgame_filesystem_isDirectory(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static bool isDirectory(const std::string &path)
-    bool ret = (bool)xgame::filesystem::isDirectory(arg1);
+    bool ret = xgame::filesystem::isDirectory(arg1);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1306,7 +1341,7 @@ static int _xgame_filesystem_isFile(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static bool isFile(const std::string &path)
-    bool ret = (bool)xgame::filesystem::isFile(arg1);
+    bool ret = xgame::filesystem::isFile(arg1);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1323,7 +1358,7 @@ static int _xgame_filesystem_read(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static cocos2d::Data read(const std::string &path)
-    cocos2d::Data ret = (cocos2d::Data)xgame::filesystem::read(arg1);
+    cocos2d::Data ret = xgame::filesystem::read(arg1);
     int num_ret = manual_olua_push_cocos2d_Data(L, &ret);
 
     olua_endinvoke(L);
@@ -1340,7 +1375,7 @@ static int _xgame_filesystem_remove(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static bool remove(const std::string &path)
-    bool ret = (bool)xgame::filesystem::remove(arg1);
+    bool ret = xgame::filesystem::remove(arg1);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1359,7 +1394,7 @@ static int _xgame_filesystem_rename(lua_State *L)
     olua_check_std_string(L, 2, &arg2);
 
     // static bool rename(const std::string &oldPath, const std::string &newPath)
-    bool ret = (bool)xgame::filesystem::rename(arg1, arg2);
+    bool ret = xgame::filesystem::rename(arg1, arg2);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1378,7 +1413,7 @@ static int _xgame_filesystem_shortPath1(lua_State *L)
     olua_check_uint(L, 2, &arg2);
 
     // static const std::string shortPath(const std::string &path, @optional size_t limit)
-    const std::string ret = (const std::string)xgame::filesystem::shortPath(arg1, (size_t)arg2);
+    const std::string ret = xgame::filesystem::shortPath(arg1, (size_t)arg2);
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1395,7 +1430,7 @@ static int _xgame_filesystem_shortPath2(lua_State *L)
     olua_check_std_string(L, 1, &arg1);
 
     // static const std::string shortPath(const std::string &path, @optional size_t limit)
-    const std::string ret = (const std::string)xgame::filesystem::shortPath(arg1);
+    const std::string ret = xgame::filesystem::shortPath(arg1);
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1437,7 +1472,47 @@ static int _xgame_filesystem_unzip(lua_State *L)
     olua_check_std_string(L, 2, &arg2);
 
     // static bool unzip(const std::string &path, const std::string &dest)
-    bool ret = (bool)xgame::filesystem::unzip(arg1, arg2);
+    bool ret = xgame::filesystem::unzip(arg1, arg2);
+    int num_ret = olua_push_bool(L, ret);
+
+    olua_endinvoke(L);
+
+    return num_ret;
+}
+
+static int _xgame_filesystem_write1(lua_State *L)
+{
+    olua_startinvoke(L);
+
+    std::string arg1;       /** path */
+    const char *arg2 = nullptr;       /** data */
+    lua_Unsigned arg3 = 0;       /** len */
+
+    olua_check_std_string(L, 1, &arg1);
+    olua_check_string(L, 2, &arg2);
+    olua_check_uint(L, 3, &arg3);
+
+    // static bool write(const std::string &path, const char *data, size_t len)
+    bool ret = xgame::filesystem::write(arg1, arg2, (size_t)arg3);
+    int num_ret = olua_push_bool(L, ret);
+
+    olua_endinvoke(L);
+
+    return num_ret;
+}
+
+static int _xgame_filesystem_write2(lua_State *L)
+{
+    olua_startinvoke(L);
+
+    std::string arg1;       /** path */
+    cocos2d::Data arg2;       /** data */
+
+    olua_check_std_string(L, 1, &arg1);
+    manual_olua_check_cocos2d_Data(L, 2, &arg2);
+
+    // static bool write(const std::string &path, const cocos2d::Data &data)
+    bool ret = xgame::filesystem::write(arg1, arg2);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1447,17 +1522,25 @@ static int _xgame_filesystem_unzip(lua_State *L)
 
 static int _xgame_filesystem_write(lua_State *L)
 {
-    olua_startinvoke(L);
+    int num_args = lua_gettop(L);
 
-    size_t len;
-    std::string path = olua_tostring(L, 1);
-    const char *data = olua_checklstring(L, 2, &len);
-    bool ret = (bool)xgame::filesystem::write(path, data, len);
-    olua_push_bool(L, ret);
+    if (num_args == 2) {
+        // if ((olua_is_std_string(L, 1)) && (manual_olua_is_cocos2d_Data(L, 2))) {
+            // static bool write(const std::string &path, const cocos2d::Data &data)
+            return _xgame_filesystem_write2(L);
+        // }
+    }
 
-    olua_endinvoke(L);
+    if (num_args == 3) {
+        // if ((olua_is_std_string(L, 1)) && (olua_is_string(L, 2)) && (olua_is_uint(L, 3))) {
+            // static bool write(const std::string &path, const char *data, size_t len)
+            return _xgame_filesystem_write1(L);
+        // }
+    }
 
-    return 1;
+    luaL_error(L, "method 'xgame::filesystem::write' not support '%d' arguments", num_args);
+
+    return 0;
 }
 
 static int luaopen_xgame_filesystem(lua_State *L)
@@ -1546,7 +1629,7 @@ static int _xgame_preferences_getBoolean1(lua_State *L)
     olua_check_bool(L, 2, &arg2);
 
     // static bool getBoolean(const char *key, @optional bool defaultValue)
-    bool ret = (bool)xgame::preferences::getBoolean(arg1, arg2);
+    bool ret = xgame::preferences::getBoolean(arg1, arg2);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1563,7 +1646,7 @@ static int _xgame_preferences_getBoolean2(lua_State *L)
     olua_check_string(L, 1, &arg1);
 
     // static bool getBoolean(const char *key, @optional bool defaultValue)
-    bool ret = (bool)xgame::preferences::getBoolean(arg1);
+    bool ret = xgame::preferences::getBoolean(arg1);
     int num_ret = olua_push_bool(L, ret);
 
     olua_endinvoke(L);
@@ -1605,7 +1688,7 @@ static int _xgame_preferences_getDouble1(lua_State *L)
     olua_check_number(L, 2, &arg2);
 
     // static double getDouble(const char *key, @optional double defaultValue)
-    double ret = (double)xgame::preferences::getDouble(arg1, (double)arg2);
+    double ret = xgame::preferences::getDouble(arg1, (double)arg2);
     int num_ret = olua_push_number(L, (lua_Number)ret);
 
     olua_endinvoke(L);
@@ -1622,7 +1705,7 @@ static int _xgame_preferences_getDouble2(lua_State *L)
     olua_check_string(L, 1, &arg1);
 
     // static double getDouble(const char *key, @optional double defaultValue)
-    double ret = (double)xgame::preferences::getDouble(arg1);
+    double ret = xgame::preferences::getDouble(arg1);
     int num_ret = olua_push_number(L, (lua_Number)ret);
 
     olua_endinvoke(L);
@@ -1664,7 +1747,7 @@ static int _xgame_preferences_getFloat1(lua_State *L)
     olua_check_number(L, 2, &arg2);
 
     // static float getFloat(const char *key, @optional float defaultValue)
-    float ret = (float)xgame::preferences::getFloat(arg1, (float)arg2);
+    float ret = xgame::preferences::getFloat(arg1, (float)arg2);
     int num_ret = olua_push_number(L, (lua_Number)ret);
 
     olua_endinvoke(L);
@@ -1681,7 +1764,7 @@ static int _xgame_preferences_getFloat2(lua_State *L)
     olua_check_string(L, 1, &arg1);
 
     // static float getFloat(const char *key, @optional float defaultValue)
-    float ret = (float)xgame::preferences::getFloat(arg1);
+    float ret = xgame::preferences::getFloat(arg1);
     int num_ret = olua_push_number(L, (lua_Number)ret);
 
     olua_endinvoke(L);
@@ -1723,7 +1806,7 @@ static int _xgame_preferences_getInteger1(lua_State *L)
     olua_check_int(L, 2, &arg2);
 
     // static int getInteger(const char *key, @optional int defaultValue)
-    int ret = (int)xgame::preferences::getInteger(arg1, (int)arg2);
+    int ret = xgame::preferences::getInteger(arg1, (int)arg2);
     int num_ret = olua_push_int(L, (lua_Integer)ret);
 
     olua_endinvoke(L);
@@ -1740,7 +1823,7 @@ static int _xgame_preferences_getInteger2(lua_State *L)
     olua_check_string(L, 1, &arg1);
 
     // static int getInteger(const char *key, @optional int defaultValue)
-    int ret = (int)xgame::preferences::getInteger(arg1);
+    int ret = xgame::preferences::getInteger(arg1);
     int num_ret = olua_push_int(L, (lua_Integer)ret);
 
     olua_endinvoke(L);
@@ -1782,7 +1865,7 @@ static int _xgame_preferences_getString1(lua_State *L)
     olua_check_string(L, 2, &arg2);
 
     // static std::string getString(const char *key, @optional const char *defaultValue)
-    std::string ret = (std::string)xgame::preferences::getString(arg1, arg2);
+    std::string ret = xgame::preferences::getString(arg1, arg2);
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1799,7 +1882,7 @@ static int _xgame_preferences_getString2(lua_State *L)
     olua_check_string(L, 1, &arg1);
 
     // static std::string getString(const char *key, @optional const char *defaultValue)
-    std::string ret = (std::string)xgame::preferences::getString(arg1);
+    std::string ret = xgame::preferences::getString(arg1);
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1961,7 +2044,7 @@ static int _xgame_timer_createTag(lua_State *L)
     olua_startinvoke(L);
 
     // static std::string createTag()
-    std::string ret = (std::string)xgame::timer::createTag();
+    std::string ret = xgame::timer::createTag();
     int num_ret = olua_push_std_string(L, ret);
 
     olua_endinvoke(L);
@@ -1978,19 +2061,19 @@ static int _xgame_timer_delay(lua_State *L)
 
     olua_check_number(L, 1, &arg1);
 
-    void *self_obj = (void *)olua_pushclassobj(L, "kernel.timer");
-    std::string tag = "delay";
-    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 2, OLUA_TAG_NEW);
-    lua_Unsigned ctx = olua_context(L);
-    arg2 = [self_obj, func, ctx]() {
+    void *cb_store = (void *)olua_pushclassobj(L, "kernel.timer");
+    std::string cb_tag = "delay";
+    std::string cb_name = olua_setcallback(L, cb_store, cb_tag.c_str(), 2, OLUA_TAG_NEW);
+    lua_Integer cb_ctx = olua_context(L);
+    arg2 = [cb_store, cb_name, cb_ctx]() {
         lua_State *L = olua_mainthread(NULL);
 
-        if (L != NULL && (olua_context(L) == ctx)) {
+        if (L != NULL && olua_context(L) == cb_ctx) {
             int top = lua_gettop(L);
 
-            olua_callback(L, self_obj, func.c_str(), 0);
+            olua_callback(L, cb_store, cb_name.c_str(), 0);
 
-            olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
+            olua_removecallback(L, cb_store, cb_name.c_str(), OLUA_TAG_WHOLE);
 
             lua_settop(L, top);
         }
@@ -2015,19 +2098,19 @@ static int _xgame_timer_delayWithTag(lua_State *L)
     olua_check_number(L, 1, &arg1);
     olua_check_std_string(L, 2, &arg2);
 
-    void *self_obj = (void *)olua_pushclassobj(L, "kernel.timer");
-    std::string tag = makeTimerDelayTag(arg2);
-    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 3, OLUA_TAG_REPLACE);
-    lua_Unsigned ctx = olua_context(L);
-    arg3 = [self_obj, func, ctx]() {
+    void *cb_store = (void *)olua_pushclassobj(L, "kernel.timer");
+    std::string cb_tag = makeTimerDelayTag(arg2);
+    std::string cb_name = olua_setcallback(L, cb_store, cb_tag.c_str(), 3, OLUA_TAG_REPLACE);
+    lua_Integer cb_ctx = olua_context(L);
+    arg3 = [cb_store, cb_name, cb_ctx]() {
         lua_State *L = olua_mainthread(NULL);
 
-        if (L != NULL && (olua_context(L) == ctx)) {
+        if (L != NULL && olua_context(L) == cb_ctx) {
             int top = lua_gettop(L);
 
-            olua_callback(L, self_obj, func.c_str(), 0);
+            olua_callback(L, cb_store, cb_name.c_str(), 0);
 
-            olua_removecallback(L, self_obj, func.c_str(), OLUA_TAG_WHOLE);
+            olua_removecallback(L, cb_store, cb_name.c_str(), OLUA_TAG_WHOLE);
 
             lua_settop(L, top);
         }
@@ -2049,9 +2132,9 @@ static int _xgame_timer_killDelay(lua_State *L)
 
     olua_check_std_string(L, 1, &arg1);
 
-    std::string tag = makeTimerDelayTag(arg1);
-    void *self_obj = (void *)olua_pushclassobj(L, "kernel.timer");
-    olua_removecallback(L, self_obj, tag.c_str(), OLUA_TAG_SUBEQUAL);
+    std::string cb_tag = makeTimerDelayTag(arg1);
+    void *cb_store = (void *)olua_pushclassobj(L, "kernel.timer");
+    olua_removecallback(L, cb_store, cb_tag.c_str(), OLUA_TAG_SUBEQUAL);
 
     // static void killDelay(const std::string &tag)
     xgame::timer::killDelay(arg1);
@@ -2066,12 +2149,12 @@ static int _xgame_timer_schedule(lua_State *L)
     olua_startinvoke(L);
 
     float interval = (float)olua_checknumber(L, 1);
-    uint32_t callback = olua_reffunc(L, 2);
+    uint32_t callback = olua_funcref(L, 2);
     uint32_t id = xgame::timer::schedule(interval, [callback](float dt) {
         lua_State *L = olua_mainthread(NULL);
         if (L != NULL) {
             int top = lua_gettop(L);
-            olua_geterrorfunc(L);
+            olua_pusherrorfunc(L);
             olua_getref(L, callback);
             if (lua_isfunction(L, -1)) {
                 lua_pushnumber(L, dt);
@@ -2118,87 +2201,212 @@ static int luaopen_xgame_timer(lua_State *L)
     return 1;
 }
 
-static int _xgame_window_convertToCameraSpace(lua_State *L)
+static int _xgame_window___move(lua_State *L)
 {
     olua_startinvoke(L);
 
-    cocos2d::Rect rect;
-    cocos2d::Vec3 out;
-    auto director = cocos2d::Director::getInstance();
-    auto pt = cocos2d::Vec2(olua_checknumber(L, 1), olua_checknumber(L, 2));
-    auto runningScene = director->getRunningScene();
-    auto w2l = runningScene->getWorldToNodeTransform();
-    rect.size = director->getOpenGLView()->getDesignResolutionSize();
-    cocos2d::isScreenPointInRect(pt, runningScene->getDefaultCamera(), w2l, rect, &out);
-    lua_pushnumber(L, out.x);
-    lua_pushnumber(L, out.y);
+    auto self = (xgame::window *)olua_toobj(L, 1, "kernel.window");
+    olua_push_cppobj(L, self, "kernel.window");
 
     olua_endinvoke(L);
 
-    return 2;
+    return 1;
+}
+
+static int _xgame_window_convertToCameraSpace1(lua_State *L)
+{
+    olua_startinvoke(L);
+
+    cocos2d::Vec2 arg1;       /** position */
+
+    auto_olua_check_cocos2d_Vec2(L, 1, &arg1);
+
+    // static cocos2d::Vec2 convertToCameraSpace(const cocos2d::Vec2 &position)
+    cocos2d::Vec2 ret = xgame::window::convertToCameraSpace(arg1);
+    int num_ret = auto_olua_push_cocos2d_Vec2(L, &ret);
+
+    olua_endinvoke(L);
+
+    return num_ret;
+}
+
+static int _xgame_window_convertToCameraSpace2(lua_State *L)
+{
+    olua_startinvoke(L);
+
+    cocos2d::Vec2 arg1;       /** position */
+
+    auto_olua_pack_cocos2d_Vec2(L, 1, &arg1);
+
+    // static cocos2d::Vec2 convertToCameraSpace(@pack const cocos2d::Vec2 &position)
+    cocos2d::Vec2 ret = xgame::window::convertToCameraSpace(arg1);
+    int num_ret = auto_olua_unpack_cocos2d_Vec2(L, &ret);
+
+    olua_endinvoke(L);
+
+    return num_ret;
+}
+
+static int _xgame_window_convertToCameraSpace(lua_State *L)
+{
+    int num_args = lua_gettop(L);
+
+    if (num_args == 1) {
+        // if ((auto_olua_is_cocos2d_Vec2(L, 1))) {
+            // static cocos2d::Vec2 convertToCameraSpace(const cocos2d::Vec2 &position)
+            return _xgame_window_convertToCameraSpace1(L);
+        // }
+    }
+
+    if (num_args == 2) {
+        // if ((auto_olua_ispack_cocos2d_Vec2(L, 1))) {
+            // static cocos2d::Vec2 convertToCameraSpace(@pack const cocos2d::Vec2 &position)
+            return _xgame_window_convertToCameraSpace2(L);
+        // }
+    }
+
+    luaL_error(L, "method 'xgame::window::convertToCameraSpace' not support '%d' arguments", num_args);
+
+    return 0;
 }
 
 static int _xgame_window_getDesignSize(lua_State *L)
 {
     olua_startinvoke(L);
 
-    auto size = cocos2d::Director::getInstance()->getOpenGLView()->getDesignResolutionSize();
-    lua_pushnumber(L, size.width);
-    lua_pushnumber(L, size.height);
+    // @unpack static cocos2d::Size getDesignSize()
+    cocos2d::Size ret = xgame::window::getDesignSize();
+    int num_ret = auto_olua_unpack_cocos2d_Size(L, &ret);
 
     olua_endinvoke(L);
 
-    return 2;
+    return num_ret;
 }
 
 static int _xgame_window_getFrameSize(lua_State *L)
 {
     olua_startinvoke(L);
 
-    auto size = cocos2d::Director::getInstance()->getOpenGLView()->getFrameSize();
-    lua_pushnumber(L, size.width);
-    lua_pushnumber(L, size.height);
+    // @unpack static cocos2d::Size getFrameSize()
+    cocos2d::Size ret = xgame::window::getFrameSize();
+    int num_ret = auto_olua_unpack_cocos2d_Size(L, &ret);
 
     olua_endinvoke(L);
 
-    return 2;
+    return num_ret;
 }
 
 static int _xgame_window_getVisibleBounds(lua_State *L)
 {
     olua_startinvoke(L);
 
-    auto rect = cocos2d::Director::getInstance()->getOpenGLView()->getVisibleRect();
-    lua_pushinteger(L, rect.getMinX());
-    lua_pushinteger(L, rect.getMaxX());
-    lua_pushinteger(L, rect.getMaxY());
-    lua_pushinteger(L, rect.getMinY());
+    // @unpack static xgame::window::Bounds getVisibleBounds()
+    xgame::window::Bounds ret = xgame::window::getVisibleBounds();
+    int num_ret = manual_olua_unpack_xgame_window_Bounds(L, &ret);
 
     olua_endinvoke(L);
 
-    return 4;
+    return num_ret;
 }
 
 static int _xgame_window_getVisibleSize(lua_State *L)
 {
     olua_startinvoke(L);
 
-    auto rect = cocos2d::Director::getInstance()->getOpenGLView()->getVisibleRect();
-    lua_pushinteger(L, rect.size.width);
-    lua_pushinteger(L, rect.size.height);
+    // @unpack static cocos2d::Size getVisibleSize()
+    cocos2d::Size ret = xgame::window::getVisibleSize();
+    int num_ret = auto_olua_unpack_cocos2d_Size(L, &ret);
 
     olua_endinvoke(L);
 
-    return 2;
+    return num_ret;
+}
+
+static int _xgame_window_setDesignSize1(lua_State *L)
+{
+    olua_startinvoke(L);
+
+    cocos2d::Size arg1;       /** size */
+    lua_Unsigned arg2 = 0;       /** resolutionPolicy */
+
+    auto_olua_check_cocos2d_Size(L, 1, &arg1);
+    olua_check_uint(L, 2, &arg2);
+
+    // static void setDesignSize(const cocos2d::Size &size, ResolutionPolicy resolutionPolicy)
+    xgame::window::setDesignSize(arg1, (ResolutionPolicy)arg2);
+
+    olua_endinvoke(L);
+
+    return 0;
+}
+
+static int _xgame_window_setDesignSize2(lua_State *L)
+{
+    olua_startinvoke(L);
+
+    cocos2d::Size arg1;       /** size */
+    lua_Unsigned arg2 = 0;       /** resolutionPolicy */
+
+    auto_olua_pack_cocos2d_Size(L, 1, &arg1);
+    olua_check_uint(L, 3, &arg2);
+
+    // static void setDesignSize(@pack const cocos2d::Size &size, ResolutionPolicy resolutionPolicy)
+    xgame::window::setDesignSize(arg1, (ResolutionPolicy)arg2);
+
+    olua_endinvoke(L);
+
+    return 0;
 }
 
 static int _xgame_window_setDesignSize(lua_State *L)
 {
+    int num_args = lua_gettop(L);
+
+    if (num_args == 2) {
+        // if ((auto_olua_is_cocos2d_Size(L, 1)) && (olua_is_uint(L, 2))) {
+            // static void setDesignSize(const cocos2d::Size &size, ResolutionPolicy resolutionPolicy)
+            return _xgame_window_setDesignSize1(L);
+        // }
+    }
+
+    if (num_args == 3) {
+        // if ((auto_olua_ispack_cocos2d_Size(L, 1)) && (olua_is_uint(L, 3))) {
+            // static void setDesignSize(@pack const cocos2d::Size &size, ResolutionPolicy resolutionPolicy)
+            return _xgame_window_setDesignSize2(L);
+        // }
+    }
+
+    luaL_error(L, "method 'xgame::window::setDesignSize' not support '%d' arguments", num_args);
+
+    return 0;
+}
+
+static int _xgame_window_setFrameSize1(lua_State *L)
+{
     olua_startinvoke(L);
 
-    cocos2d::Director::getInstance()->getOpenGLView()->setDesignResolutionSize(
-        (float)olua_checknumber(L, 1), (float)olua_checknumber(L, 2),
-        (ResolutionPolicy)olua_checkinteger(L, 3));
+    cocos2d::Size arg1;       /** size */
+
+    auto_olua_check_cocos2d_Size(L, 1, &arg1);
+
+    // static void setFrameSize(const cocos2d::Size &size)
+    xgame::window::setFrameSize(arg1);
+
+    olua_endinvoke(L);
+
+    return 0;
+}
+
+static int _xgame_window_setFrameSize2(lua_State *L)
+{
+    olua_startinvoke(L);
+
+    cocos2d::Size arg1;       /** size */
+
+    auto_olua_pack_cocos2d_Size(L, 1, &arg1);
+
+    // static void setFrameSize(@pack const cocos2d::Size &size)
+    xgame::window::setFrameSize(arg1);
 
     olua_endinvoke(L);
 
@@ -2207,16 +2415,23 @@ static int _xgame_window_setDesignSize(lua_State *L)
 
 static int _xgame_window_setFrameSize(lua_State *L)
 {
-    olua_startinvoke(L);
+    int num_args = lua_gettop(L);
 
-    auto glView = cocos2d::Director::getInstance()->getOpenGLView();
-    float width = (float)olua_checknumber(L, 1);
-    float height = (float)olua_checknumber(L, 2);
-    xgame::preferences::setFloat(CONF_WINDOW_WIDTH, width);
-    xgame::preferences::setFloat(CONF_WINDOW_HEIGHT, height);
-    glView->setFrameSize(width, height);
+    if (num_args == 1) {
+        // if ((auto_olua_is_cocos2d_Size(L, 1))) {
+            // static void setFrameSize(const cocos2d::Size &size)
+            return _xgame_window_setFrameSize1(L);
+        // }
+    }
 
-    olua_endinvoke(L);
+    if (num_args == 2) {
+        // if ((auto_olua_ispack_cocos2d_Size(L, 1))) {
+            // static void setFrameSize(@pack const cocos2d::Size &size)
+            return _xgame_window_setFrameSize2(L);
+        // }
+    }
+
+    luaL_error(L, "method 'xgame::window::setFrameSize' not support '%d' arguments", num_args);
 
     return 0;
 }
@@ -2224,6 +2439,7 @@ static int _xgame_window_setFrameSize(lua_State *L)
 static int luaopen_xgame_window(lua_State *L)
 {
     oluacls_class(L, "kernel.window", nullptr);
+    oluacls_func(L, "__move", _xgame_window___move);
     oluacls_func(L, "convertToCameraSpace", _xgame_window_convertToCameraSpace);
     oluacls_func(L, "getDesignSize", _xgame_window_getDesignSize);
     oluacls_func(L, "getFrameSize", _xgame_window_getFrameSize);
@@ -2231,6 +2447,12 @@ static int luaopen_xgame_window(lua_State *L)
     oluacls_func(L, "getVisibleSize", _xgame_window_getVisibleSize);
     oluacls_func(L, "setDesignSize", _xgame_window_setDesignSize);
     oluacls_func(L, "setFrameSize", _xgame_window_setFrameSize);
+    oluacls_prop(L, "designSize", _xgame_window_getDesignSize, _xgame_window_setDesignSize);
+    oluacls_prop(L, "frameSize", _xgame_window_getFrameSize, _xgame_window_setFrameSize);
+    oluacls_prop(L, "visibleBounds", _xgame_window_getVisibleBounds, nullptr);
+    oluacls_prop(L, "visibleSize", _xgame_window_getVisibleSize, nullptr);
+
+    olua_registerluatype<xgame::window>(L, "kernel.window");
 
     return 1;
 }
@@ -2306,21 +2528,21 @@ static int _xgame_downloader_setDispatcher(lua_State *L)
 
     std::function<void(const xgame::downloader::FileTask &)> arg1;       /** callback */
 
-    void *self_obj = (void *)olua_pushclassobj(L, "kernel.downloader");
-    std::string tag = "Dispatcher";
-    std::string func = olua_setcallback(L, self_obj, tag.c_str(), 1, OLUA_TAG_REPLACE);
-    lua_Unsigned ctx = olua_context(L);
-    arg1 = [self_obj, func, ctx](const xgame::downloader::FileTask &arg1) {
+    void *cb_store = (void *)olua_pushclassobj(L, "kernel.downloader");
+    std::string cb_tag = "Dispatcher";
+    std::string cb_name = olua_setcallback(L, cb_store, cb_tag.c_str(), 1, OLUA_TAG_REPLACE);
+    lua_Integer cb_ctx = olua_context(L);
+    arg1 = [cb_store, cb_name, cb_ctx](const xgame::downloader::FileTask &arg1) {
         lua_State *L = olua_mainthread(NULL);
 
-        if (L != NULL && (olua_context(L) == ctx)) {
+        if (L != NULL && olua_context(L) == cb_ctx) {
             int top = lua_gettop(L);
             size_t last = olua_push_objpool(L);
             olua_enable_objpool(L);
             auto_olua_push_xgame_downloader_FileTask(L, &arg1);
             olua_disable_objpool(L);
 
-            olua_callback(L, self_obj, func.c_str(), 1);
+            olua_callback(L, cb_store, cb_name.c_str(), 1);
 
             //pop stack value
             olua_pop_objpool(L, last);
@@ -2367,7 +2589,7 @@ static int _xgame_MaskLayout_create(lua_State *L)
     olua_startinvoke(L);
 
     // static xgame::MaskLayout *create()
-    xgame::MaskLayout *ret = (xgame::MaskLayout *)xgame::MaskLayout::create();
+    xgame::MaskLayout *ret = xgame::MaskLayout::create();
     int num_ret = olua_push_cppobj(L, ret, "kernel.MaskLayout");
 
     olua_endinvoke(L);
@@ -2384,7 +2606,7 @@ static int _xgame_MaskLayout_getClippingNode(lua_State *L)
     olua_to_cppobj(L, 1, (void **)&self, "kernel.MaskLayout");
 
     // cocos2d::DrawNode *getClippingNode()
-    cocos2d::DrawNode *ret = (cocos2d::DrawNode *)self->getClippingNode();
+    cocos2d::DrawNode *ret = self->getClippingNode();
     int num_ret = olua_push_cppobj(L, ret, "cc.DrawNode");
 
     olua_endinvoke(L);

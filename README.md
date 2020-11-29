@@ -1,5 +1,10 @@
 # Cocos-lua
 
+[![iOS Build Status](https://github.com/zhongfq/cocos-lua/workflows/ios/badge.svg)](https://github.com/zhongfq/cocos-lua/actions?query=workflow:ios)
+[![Android Build Status](https://github.com/zhongfq/cocos-lua/workflows/android/badge.svg)](https://github.com/zhongfq/cocos-lua/actions?query=workflow:android)
+[![Mac Build Status](https://github.com/zhongfq/cocos-lua/workflows/macos/badge.svg)](https://github.com/zhongfq/cocos-lua/actions?query=workflow:macos)
+[![Window Build Status](https://github.com/zhongfq/cocos-lua/workflows/windows/badge.svg)](https://github.com/zhongfq/cocos-lua/actions?query=workflow:windows)
+
 cocos-lua以cocos2d-x v4的c++项目为基础，采用基于lua gc来管理c++对象的生命周期，提供更丰富cocos2d-x lua api，包括几乎除模版以外的所有lambda（schedule、scheduleOnce...）函数回调，能够极大减少在lua层使用c++对象的负担。
 
 ## 优势
@@ -37,7 +42,8 @@ open cocos-lua.xcodeproj
 ```sh
 cd cocos-lua
 mkdir build\win32-build && cd build\win32-build
-cmake ../.. -G"Visual Studio 15 2017" -Tv141
+cmake ../.. -A Win32
+# cmake ../.. -G"Visual Studio 15 2017" -Tv141 -A Win32
 ```
 
 #### Android编译
@@ -86,7 +92,7 @@ cocos-lua在lua层屏蔽Ref的release和retain方法，改由lua gc管理，以�
 
 ### 3. 回调函数生命周期
 
-将lua回调函数存储在uservalue会有一个问题，如果uservalue被回收，那么回调函数就丢失了。比如CallFunc中的回调，当调用完obj:runAction(sequence)之后，在action未全部完成而中途发生lua gc，那么这些userdata对象将被回收，这就导致与使用的预期不一致问题。为了解决这个问题，cocos-lua通过导出时注入代码的方式，引入了引用链的机制。
+将lua回调函数存储在uservalue会有一个问题，如果uservalue被回收，那么回调函数就丢失了。比如CallFunc中的回调，当调用完obj:runAction(sequence)之后，在action未全部完成而中途发生lua gc，那么这些userdata对象将被回收，这就导致与使用的预期不一致问题。为了解决这个问题，cocos-lua通过导出时插入代码的方式，引入了引用链的机制。
 
 + 将cocos2d::Director作用根对象，以__cocos2d_ref_chain__为键存储在LUA_REGISTRYINDEX表中。
 + 对能够存储回调的Node、Director、Action、Component、ActionManager、Schedule以及EventDispatcher等对象，在一些添加（addChild...）或移除（removeAllChildren...）方法中注入addref或delref代码。

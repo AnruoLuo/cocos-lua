@@ -12,9 +12,13 @@ return {
 
         // fairygui
         #include "FairyGUI.h"
+        #include "GLoader3D.h"
         #include "tween/EaseManager.h"
         #include "tween/GPath.h"
         #include "display/FUISprite.h"
+        #include "utils/html/HtmlElement.h"
+        #include "utils/html/HtmlObject.h"
+        #include "utils/html/HtmlParser.h"
 
         // spine
         #include "spine/spine-cocos2dx.h"
@@ -29,6 +33,7 @@ return {
         #include "xgame/downloader.h"
         #include "xgame/RootScene.h"
         #include "xgame/timer.h"
+        #include "xgame/window.h"
         #include "lua-bindings/LuaCocosAdapter.h"
     ]],
     FLAGS = {

@@ -33,7 +33,7 @@ static int _coroutine_resume(lua_State *L)
     lua_call(L, lua_gettop(L) - 2, LUA_MULTRET);
     
     if (lua_toboolean(L, 2) == 0) {
-        olua_geterrorfunc(L);
+        olua_pusherrorfunc(L);
         lua_pushvalue(L, 1);
         lua_pushvalue(L, 3);
         lua_pcall(L, 2, 0, 0);
@@ -66,7 +66,7 @@ static int _print(lua_State *L)
         lua_pcall(L, 1, 1, 0);
         s = lua_tolstring(L, -1, &l);
         
-        if (olua_testudata(L, -2, "LUABOX")) {
+        if (luaL_testudata(L, -2, "LUABOX")) {
             lua_insert(L, -2);
         }
         
@@ -80,7 +80,7 @@ static int _print(lua_State *L)
         
         luaL_addlstring(&buffer, s, l);
         
-        if (olua_testudata(L, -1, "LUABOX")) {
+        if (luaL_testudata(L, -1, "LUABOX")) {
             lua_remove(L, -2);
         } else {
             lua_pop(L, 1);  /* pop str */
@@ -225,13 +225,13 @@ static int _errorfunc(lua_State *L)
     
     if (olua_isthread(L, 1)) {
         errmsg = luaL_optstring(L, 2, "");
-        olua_traceback(L, lua_tothread(L, 1), NULL, 0);
+        luaL_traceback(L, lua_tothread(L, 1), NULL, 0);
         errstack = lua_tostring(L, -1);
     } else {
         errmsg = lua_tostring(L, 1);
     }
     
-    olua_traceback(L, L, errstack, 1);
+    luaL_traceback(L, L, errstack, 1);
     errstack = simplify_traceback(lua_tostring(L, -1));
     
     if (errmsg == NULL) {
@@ -249,18 +249,22 @@ static int _errorfunc(lua_State *L)
 lua_State *xlua_new()
 {
     lua_State *L = luaL_newstate();
+    
+#if LUA_VERSION_NUM == 501
+    olua_initcompat(L);
+#endif
+    
     luaL_openlibs(L);
-    olua_dofunc(L, _fixcoresume);
-    olua_dofunc(L, _fixprint);
-    olua_dofunc(L, _addsearchpath);
-    olua_dofunc(L, _addlualoader);
+    olua_callfunc(L, _fixcoresume);
+    olua_callfunc(L, _fixprint);
+    olua_callfunc(L, _addsearchpath);
+    olua_callfunc(L, _addlualoader);
     
     lua_pushcfunction(L, _errorfunc);
     lua_setglobal(L, "__TRACEBACK__");
     
     lua_pushboolean(L, runtime::isDebug());
     lua_setglobal(L, "DEBUG");
-
     
     return L;
 }
@@ -269,7 +273,8 @@ int xlua_dofile(lua_State *L, const char *filename)
 {
     int errfunc, status;
     
-    errfunc = olua_geterrorfunc(L);                     // L: errfunc
+    olua_pusherrorfunc(L);                              // L: errfunc
+    errfunc = lua_gettop(L);
     
     luaL_gsub(L, filename, ".lua", "");                 // L: errfunc "xxx.xxxx"
     luaL_gsub(L, lua_tostring(L, -1), "/", ".");        // L: errfunc "xxx.xxxx" "xxx/xxxx"
@@ -346,13 +351,15 @@ int xlua_ccobjgc(lua_State *L)
     auto obj = olua_toobj<cocos2d::Ref>(L, 1);
 #ifdef COCOS2D_DEBUG
     if (obj->getReferenceCount() > 0xFFFF) {
-        int errfuc = olua_geterrorfunc(L);
+        int top = lua_gettop(L);
+        olua_pusherrorfunc(L);
         lua_pushcfunction(L, report_gc_error);
         lua_pushvalue(L, 1);
-        lua_pcall(L, 1, 0, errfuc);
+        lua_pcall(L, 1, 0, top + 1);
+        lua_settop(L, top);
     }
 #endif
-    if (olua_vmstatus(L)->debug) {
+    if (olua_isdebug(L)) {
         int top = lua_gettop(L);
         lua_getfield(L, 1, "name");
         const char *name = lua_tostring(L, -1);
@@ -373,7 +380,7 @@ int xlua_ccobjgc(lua_State *L)
 
 lua_State *xlua_mainthread(lua_State *L)
 {
-    return L ? olua_vmstatus(L)->mainthread : runtime::luaVM();
+    return runtime::luaVM();
 }
 
 void xlua_startcmpdelref(lua_State *L, int idx, const char *refname)
@@ -383,11 +390,9 @@ void xlua_startcmpdelref(lua_State *L, int idx, const char *refname)
     while (lua_next(L, -2)) {                               // L: t k v
         if (olua_isa<cocos2d::Ref>(L, -2)) {
             auto obj = olua_toobj<cocos2d::Ref>(L, -2);
-            if (obj) {
-                lua_pushvalue(L, -2);                        // L: t k v k
-                lua_pushinteger(L, obj->getReferenceCount());// L: t k v k refcount
-                lua_rawset(L, -5);                           // L: t k v
-            }
+            lua_pushvalue(L, -2);                           // L: t k v k
+            lua_pushinteger(L, obj->getReferenceCount());   // L: t k v k refcount
+            lua_rawset(L, -5);                              // L: t k v
         }
         lua_pop(L, 1);                                      // L: t k
     }                                                       // L: t
@@ -398,21 +403,19 @@ static bool should_delref(lua_State *L, int idx)
 {
     if (olua_isa<cocos2d::Ref>(L, idx)) {
         auto obj = olua_toobj<cocos2d::Ref>(L, idx);
-        if (obj && olua_isinteger(L, -1)) {
+        if (olua_isinteger(L, -1)) {
             unsigned int last = (unsigned int)olua_tointeger(L, -1);
             unsigned int curr = obj->getReferenceCount();
             if (curr < last || curr == 1) {
                 return true;
             }
         }
-    } else {
-        return false;
-    }
-    
-    if (olua_isa<cocos2d::Action>(L, idx)) {
-        auto obj = olua_toobj<cocos2d::Action>(L, idx);
-        if (obj && (!obj->getTarget() || obj->isDone())) {
-            return true;
+        
+        if (olua_isa<cocos2d::Action>(L, idx)) {
+            auto action = olua_toobj<cocos2d::Action>(L, idx);
+            if (!action->getTarget() || action->isDone()) {
+                return true;
+            }
         }
     }
     return false;

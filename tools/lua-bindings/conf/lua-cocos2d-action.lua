@@ -4,9 +4,9 @@ local M = autoconf.typemod 'cocos2d_action'
 
 M.PATH = '../../frameworks/libxgame/src/lua-bindings'
 M.INCLUDES = [[
-#include "lua-bindings/lua_cocos2d.h"
 #include "lua-bindings/lua_conv.h"
 #include "lua-bindings/lua_conv_manual.h"
+#include "lua-bindings/LuaCocosAdapter.h"
 #include "cocos2d.h"
 #include "xgame/xlua.h"
 ]]
@@ -21,23 +21,23 @@ M.EXCLUDE_TYPE = require "conf.exclude-type"
 
 local function typeconf(cppcls)
     local cls = M.typeconf(cppcls)
-    cls.EXCLUDE 'new'
+    cls.EXCLUDE_FUNC 'new'
     return cls
 end
 
 typeconf 'cocos2d::Action'
-    .EXCLUDE 'calculateAngles'
-    .EXCLUDE 'createWithVariableList'
-    .EXCLUDE 'init'
-    .EXCLUDE 'initWithAction'
-    .EXCLUDE 'initWithAnimation'
-    .EXCLUDE 'initWithDuration'
-    .EXCLUDE 'initWithFlipX'
-    .EXCLUDE 'initWithFlipY'
-    .EXCLUDE 'initWithFunction'
-    .EXCLUDE 'initWithPosition'
-    .EXCLUDE 'initWithTwoActions'
-    .EXCLUDE 'setReverseAction'
+    .EXCLUDE_FUNC 'calculateAngles'
+    .EXCLUDE_FUNC 'createWithVariableList'
+    .EXCLUDE_FUNC 'init'
+    .EXCLUDE_FUNC 'initWithAction'
+    .EXCLUDE_FUNC 'initWithAnimation'
+    .EXCLUDE_FUNC 'initWithDuration'
+    .EXCLUDE_FUNC 'initWithFlipX'
+    .EXCLUDE_FUNC 'initWithFlipY'
+    .EXCLUDE_FUNC 'initWithFunction'
+    .EXCLUDE_FUNC 'initWithPosition'
+    .EXCLUDE_FUNC 'initWithTwoActions'
+    .EXCLUDE_FUNC 'setReverseAction'
 
 typeconf 'cocos2d::FiniteTimeAction'
 
@@ -51,28 +51,9 @@ typeconf 'cocos2d::tweenfunc'
 typeconf 'cocos2d::ActionInterval'
 typeconf 'cocos2d::ActionTween'
 
-local Sequence = typeconf 'cocos2d::Sequence'
-Sequence.ATTR('createWithTwoActions', {ARG1 = '@addref(autoref |)', ARG2 = '@addref(autoref |)'})
-Sequence.FUNC('create', [[
-{
-    cocos2d::Vector<cocos2d::FiniteTimeAction *> actions;
-    int n = lua_gettop(L);
-    actions.reserve(n);
-
-    auto ret = new cocos2d::Sequence();
-    ret->autorelease();
-    olua_push_cppobj<cocos2d::Sequence>(L, ret);
-
-    for (int i = 1; i <= n; i++) {
-        auto obj = olua_checkobj<cocos2d::FiniteTimeAction>(L, i);
-        actions.pushBack(obj);
-        olua_addref(L, -1, ".autoref", i, OLUA_MODE_MULTIPLE);
-    }
-
-    ret->init(actions);
-
-    return 1;
-}]])
+typeconf 'cocos2d::Sequence'
+    .ATTR('createWithTwoActions', {ARG1 = '@addref(actions |)', ARG2 = '@addref(actions |)'})
+    .ATTR('create', {ARG1 = '@pack@addref(actions |)'})
 
 typeconf 'cocos2d::Repeat'
     .ATTR('create', {ARG1 = '@addref(innerAction ^)'})
@@ -84,36 +65,21 @@ typeconf 'cocos2d::RepeatForever'
     .ATTR('setInnerAction', {ARG1 = '@addref(innerAction ^)'})
     .ATTR('getInnerAction', {RET = '@addref(innerAction ^)'})
 
-local Spawn = typeconf 'cocos2d::Spawn'
-Spawn.ATTR('createWithTwoActions', {ARG1 = '@addref(autoref |)', ARG2 = '@addref(autoref |)'})
-Spawn.FUNC('create', [[
-{
-    cocos2d::Vector<cocos2d::FiniteTimeAction *> actions;
-    int n = lua_gettop(L);
-    actions.reserve(n);
-
-    auto ret = new cocos2d::Spawn();
-    ret->autorelease();
-    olua_push_cppobj<cocos2d::Spawn>(L, ret);
-
-    for (int i = 1; i <= n; i++) {
-        auto obj = olua_checkobj<cocos2d::FiniteTimeAction>(L, i);
-        actions.pushBack(obj);
-        olua_addref(L, -1, ".autoref", i, OLUA_MODE_MULTIPLE);
-    }
-
-    ret->init(actions);
-
-    return 1;
-}]])
+typeconf 'cocos2d::Spawn'
+    .ATTR('createWithTwoActions', {ARG1 = '@addref(actions |)', ARG2 = '@addref(actions |)'})
+    .ATTR('create', {ARG1 = '@pack@addref(actions |)'})
 
 typeconf 'cocos2d::RotateTo'
+typeconf 'cocos2d::RotateFrom'
 typeconf 'cocos2d::RotateBy'
 
 typeconf 'cocos2d::MoveBy'
     .ATTR('create', {ARG2 = '@pack'})
 
 typeconf 'cocos2d::MoveTo'
+    .ATTR('create', {ARG2 = '@pack'})
+
+typeconf 'cocos2d::MoveFrom'
     .ATTR('create', {ARG2 = '@pack'})
 
 typeconf 'cocos2d::SkewTo'
@@ -135,8 +101,10 @@ typeconf 'cocos2d::JumpTo'
 
 typeconf 'cocos2d::ScaleTo'
 typeconf 'cocos2d::ScaleBy'
+typeconf 'cocos2d::ScaleFrom'
 typeconf 'cocos2d::Blink'
 typeconf 'cocos2d::FadeTo'
+typeconf 'cocos2d::FadeFrom'
 typeconf 'cocos2d::FadeIn'
 typeconf 'cocos2d::FadeOut'
 typeconf 'cocos2d::TintTo'
@@ -144,12 +112,12 @@ typeconf 'cocos2d::TintBy'
 typeconf 'cocos2d::DelayTime'
 
 typeconf 'cocos2d::ReverseTime'
-    .ATTR('create', {ARG1 = '@addref(autoref |)'})
+    .ATTR('create', {ARG1 = '@addref(actions |)'})
 
 typeconf 'cocos2d::Animate'
 
 typeconf 'cocos2d::TargetedAction'
-    .ATTR('create', {ARG2 = '@addref(autoref |)'})
+    .ATTR('create', {ARG2 = '@addref(actions |)'})
 
 typeconf 'cocos2d::ActionFloat'
     .CALLBACK {

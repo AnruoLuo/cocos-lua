@@ -4,11 +4,16 @@ local olua = require "olua"
 local typedef = olua.typedef
 
 typedef {
+    CONV = 'manual_olua_$$_xgame_window_Bounds',
+    CPPCLS = 'xgame::window::Bounds',
+}
+
+typedef {
     CPPCLS = 'xgame::downloader::FileTask',
     LUACLS = nil,
     DECLTYPE = nil,
     CONV = 'auto_olua_$$_xgame_downloader_FileTask',
-    NUMVARS = 4,
+    NUM_VARS = 4,
 }
 
 typedef {
@@ -16,7 +21,7 @@ typedef {
     LUACLS = 'kernel.SceneNoCamera',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -24,7 +29,7 @@ typedef {
     LUACLS = 'kernel.Permission',
     DECLTYPE = "lua_Unsigned",
     CONV = 'olua_$$_uint',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -32,7 +37,7 @@ typedef {
     LUACLS = 'kernel.PermissionStatus',
     DECLTYPE = "lua_Unsigned",
     CONV = 'olua_$$_uint',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -40,7 +45,7 @@ typedef {
     LUACLS = 'kernel.runtime',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -48,7 +53,7 @@ typedef {
     LUACLS = 'kernel.filesystem',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -56,7 +61,7 @@ typedef {
     LUACLS = 'kernel.preferences',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -64,7 +69,7 @@ typedef {
     LUACLS = 'kernel.timer',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -72,7 +77,7 @@ typedef {
     LUACLS = 'kernel.window',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -80,7 +85,7 @@ typedef {
     LUACLS = 'kernel.downloader.FileState',
     DECLTYPE = "lua_Unsigned",
     CONV = 'olua_$$_uint',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -88,7 +93,7 @@ typedef {
     LUACLS = 'kernel.downloader',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 
 typedef {
@@ -96,6 +101,6 @@ typedef {
     LUACLS = 'kernel.MaskLayout',
     DECLTYPE = nil,
     CONV = 'olua_$$_cppobj',
-    NUMVARS = nil,
+    NUM_VARS = nil,
 }
 

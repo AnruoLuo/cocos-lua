@@ -1,6 +1,6 @@
 -- AUTO BUILD, DON'T MODIFY!
 
-require "autobuild.conv-types"
+dofile "autobuild/conv-types.lua"
 
 local olua = require "olua"
 local typeconv = olua.typeconv
@@ -10,16 +10,14 @@ local M = {}
 
 M.NAME = "conv"
 M.PATH = "../../frameworks/libxgame/src/lua-bindings"
-M.HEADER_INCLUDES = [[
-#include "xgame/xlua.h"
-#include "cocos2d.h"
-#include "ui/CocosGUI.h"
-#include "network/WebSocket.h"
-#include "navmesh/CCNavMesh.h"
-]]
 M.INCLUDES = [[
-#include "lua-bindings/lua_conv.h"
+    #include "xgame/xlua.h"
+    #include "cocos2d.h"
+    #include "ui/CocosGUI.h"
+    #include "network/WebSocket.h"
+    #include "navmesh/CCNavMesh.h"
 ]]
+M.CHUNK = nil
 
 M.CONVS = {
     typeconv {
@@ -117,6 +115,14 @@ M.CONVS = {
             cocos2d::Tex2F br;
             cocos2d::Tex2F tl;
             cocos2d::Tex2F tr;
+        ]],
+    },
+    typeconv {
+        CPPCLS = 'cocos2d::ccBezierConfig',
+        DEF = [[
+            cocos2d::Vec2 endPosition;
+            cocos2d::Vec2 controlPoint_1;
+            cocos2d::Vec2 controlPoint_2;
         ]],
     },
     typeconv {
@@ -276,6 +282,7 @@ M.CONVS = {
             @optional uint32_t height;
             @optional uint32_t depth;
             cocos2d::backend::SamplerDescriptor samplerDescriptor;
+            @optional int sampleCount;
         ]],
     },
     typeconv {
@@ -298,6 +305,16 @@ M.CONVS = {
             @optional bool stencilTestEnabled;
             cocos2d::backend::StencilDescriptor backFaceStencil;
             cocos2d::backend::StencilDescriptor frontFaceStencil;
+        ]],
+    },
+    typeconv {
+        CPPCLS = 'cocos2d::backend::VertexLayout::Attribute',
+        DEF = [[
+            std::string name;
+            @optional cocos2d::backend::VertexFormat format;
+            @optional std::size_t offset;
+            @optional std::size_t index;
+            @optional bool needToBeNormallized;
         ]],
     },
 }

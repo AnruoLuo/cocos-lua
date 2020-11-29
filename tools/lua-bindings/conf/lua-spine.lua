@@ -2,10 +2,10 @@ local autoconf = require "autoconf"
 local M = autoconf.typemod 'spine'
 local typeconf = M.typeconf
 local typedef = M.typedef
+local typeonly = M.typeonly
 
 M.PATH = "../../frameworks/libxgame/src/lua-bindings"
 M.INCLUDES = [[
-#include "lua-bindings/lua_cocos2d_ui.h"
 #include "lua-bindings/lua_conv.h"
 #include "lua-bindings/lua_conv_manual.h"
 #include "xgame/xlua.h"
@@ -85,7 +85,7 @@ template <typename T> int manual_olua_push_spine_Vector(lua_State *L, const spin
 {
     lua_newtable(L);
     int count = 1;
-    for (int i = 0; i < v.size(); i++) {
+    for (int i = 0; i < (int)v.size(); i++) {
         auto obj = ((spine::Vector<T*> &)v)[i];
         if (obj == nullptr) {
             continue;
@@ -99,8 +99,8 @@ template <typename T> int manual_olua_push_spine_Vector(lua_State *L, const spin
 template <typename T> void manual_olua_check_spine_Vector(lua_State *L, int idx, spine::Vector<T*> &v, const char *cls)
 {
     luaL_checktype(L, idx, LUA_TTABLE);
-    size_t total = lua_rawlen(L, idx);
-    v.ensureCapacity(total);
+    int total = (int)lua_rawlen(L, idx);
+    v.ensureCapacity((size_t)total);
     for (int i = 1; i <= total; i++) {
         lua_rawgeti(L, idx, i);
         T* obj;
@@ -132,7 +132,7 @@ typedef {
         int ${ARG_NAME}_size = (int)${ARG_NAME}.size();
         lua_createtable(L, ${ARG_NAME}_size, 0);
         for (int i = 0; i < ${ARG_NAME}_size; i++) {
-            ${SUBTYPE_PUSH_FUNC}(L, ${SUBTYPE_CAST}((${TYPE_CAST})${ARG_NAME})[i]);
+            ${SUBTYPE_PUSH_FUNC}(L, ${SUBTYPE_CAST}${ARG_NAME}[i]);
             lua_rawseti(L, -2, i + 1);
         }
     ]]
@@ -165,25 +165,28 @@ M.EXCLUDE_PASS = function (cppcls, fn, decl)
         -- or string.find(decl, 'Vector *<')
 end
 
-local function typeonly(name)
-    local cls = typeconf(name)
-    cls.EXCLUDE '*'
+local function typeenum(classname)
+    local cls = typeconf(classname)
+    local cppname = string.match(classname, '[^:]+$')
+    cls.MAKE_LUANAME = function (value)
+        return value:gsub('^' .. cppname .. '_', '')
+    end
     return cls
 end
 
-typeconf 'spine::EventType'
-typeconf 'spine::AttachmentType'
-typeconf 'spine::TransformMode'
-typeconf 'spine::BlendMode'
-typeconf 'spine::PositionMode'
-typeconf 'spine::SpacingMode'
-typeconf 'spine::RotateMode'
-typeconf 'spine::MixBlend'
+typeenum 'spine::EventType'
+typeenum 'spine::AttachmentType'
+typeenum 'spine::TransformMode'
+typeenum 'spine::BlendMode'
+typeenum 'spine::PositionMode'
+typeenum 'spine::SpacingMode'
+typeenum 'spine::RotateMode'
+typeenum 'spine::MixBlend'
 
 typeconf 'spine::SpineObject'
 
 typeconf 'spine::Event'
-    .EXCLUDE 'Event'
+    .EXCLUDE_FUNC 'Event'
 
 typeconf 'spine::EventData'
 typeconf 'spine::Updatable'
@@ -207,11 +210,11 @@ typeconf 'spine::SkeletonBounds'
 typeonly 'spine::SkeletonClipping'
 
 typeconf 'spine::Timeline'
-    .EXCLUDE 'apply'
-    .EXCLUDE 'setFrame'
-    .EXCLUDE 'getVertices'
-    .EXCLUDE 'getDrawOrders'
-    .EXCLUDE 'getEvents'
+    .EXCLUDE_FUNC 'apply'
+    .EXCLUDE_FUNC 'setFrame'
+    .EXCLUDE_FUNC 'getVertices'
+    .EXCLUDE_FUNC 'getDrawOrders'
+    .EXCLUDE_FUNC 'getEvents'
 
 typeconf 'spine::CurveTimeline'
 typeconf 'spine::AttachmentTimeline'
@@ -231,9 +234,9 @@ typeconf 'spine::RotateTimeline'
 typeconf 'spine::TwoColorTimeline'
 
 typeconf 'spine::VertexEffect'
-    .EXCLUDE 'begin'
-    .EXCLUDE 'end'
-    .EXCLUDE 'transform'
+    .EXCLUDE_FUNC 'begin'
+    .EXCLUDE_FUNC 'end'
+    .EXCLUDE_FUNC 'transform'
 
 typeconf 'spine::SwirlVertexEffect'
 typeconf 'spine::JitterVertexEffect'
@@ -241,15 +244,15 @@ typeconf 'spine::JitterVertexEffect'
 typeonly 'spine::Polygon'
 
 typeconf 'spine::Skin'
-    .EXCLUDE 'getAttachments'
-    .EXCLUDE 'findNamesForSlot'
-    .EXCLUDE 'findAttachmentsForSlot'
+    .EXCLUDE_FUNC 'getAttachments'
+    .EXCLUDE_FUNC 'findNamesForSlot'
+    .EXCLUDE_FUNC 'findAttachmentsForSlot'
 
 typeonly 'spine::Atlas'
 
 typeconf 'spine::Bone'
-    .EXCLUDE 'localToWorld'
-    .EXCLUDE 'worldToLocal'
+    .EXCLUDE_FUNC 'localToWorld'
+    .EXCLUDE_FUNC 'worldToLocal'
 
 typeconf 'spine::Slot'
 typeconf 'spine::Attachment'
@@ -298,7 +301,7 @@ SkeletonData.FUNC("new", [[
 {
     const char *skel_path = olua_checkstring(L, 1);
     const char *atlas_path = olua_checkstring(L, 2);
-    float scale = olua_optnumber(L, 3, 1);
+    float scale = (float)olua_optnumber(L, 3, 1);
 
     auto texture_loader = new spine::Cocos2dTextureLoader();
     auto atlas = new spine::Atlas(atlas_path, texture_loader);
@@ -346,7 +349,7 @@ SkeletonData.FUNC("new", [[
 }]])
 
 typeconf 'spine::Skeleton'
-    .EXCLUDE 'getBounds'
+    .EXCLUDE_FUNC 'getBounds'
 
 typeconf 'spine::SkeletonRenderer'
     .ATTR('createWithData', {ARG1 = '@addref(skeletonData ^)'})

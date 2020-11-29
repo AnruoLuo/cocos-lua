@@ -21,7 +21,12 @@ public:
     TextFormat* getTextFormat() const { return _textFormat; }
     void applyTextFormat();
 
+    void setUnderlineColor(const cocos2d::Color3B& value);
+
     virtual bool setBMFontFilePath(const std::string& bmfontFilePath, const cocos2d::Vec2& imageOffset = cocos2d::Vec2::ZERO, float fontSize = 0) override;
+    virtual bool setBMFontFilePath(const std::string& bmfontFilePath, float fontSize = 0) override;
+    virtual bool setBMFontFilePath(const std::string& bmfontFilePath, const cocos2d::Rect& imageRect, bool imageRotated, float fontSize = 0) override;
+    virtual bool setBMFontFilePath(const std::string& bmfontFilePath, const std::string& subTextureKey, float fontSize = 0) override;
 
     void setGrayed(bool value);
 protected:

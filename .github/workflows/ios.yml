@@ -1,0 +1,38 @@
+name: ios
+
+on: [push]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: Apple-Actions/import-codesign-certs@v1
+      with:
+        p12-file-base64: ${{secrets.CERTIFICATES_FILE_BASE64}}
+        p12-password: ${{secrets.CERTIFICATES_PASSWORD}}
+
+    - uses: Apple-Actions/download-provisioning-profiles@v1
+      with:
+        bundle-id: com.codetypes.hellolua
+        issuer-id: ${{secrets.APPSTORE_ISSUER_ID}}
+        api-key-id: ${{secrets.APPSTORE_KEY_ID}}
+        api-private-key: ${{secrets.APPSTORE_PRIVATE_KEY}}
+
+    - name: Create Build Environment
+      run: cmake -E make_directory build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -GXcode -DCMAKE_SYSTEM_NAME=iOS
+
+    - name: Build
+      working-directory: build
+      shell: bash
+      run: cmake --build . --target cocos-lua --config $BUILD_TYPE

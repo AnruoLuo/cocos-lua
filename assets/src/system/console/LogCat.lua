@@ -1,7 +1,7 @@
 local class         = require "xgame.class"
 local Array         = require "xgame.Array"
 local runtime       = require "xgame.runtime"
-local Dispatcher    = require "xgame.event.Dispatcher"
+local Dispatcher    = require "xgame.Dispatcher"
 
 local LogCat = class('LogCat', Dispatcher)
 
@@ -11,7 +11,7 @@ function LogCat:ctor(context)
     self.logFile = io.open(runtime.logPath, "r")
     self.maxIndex = 0
 
-    self.list = context.view:resolve('panel.logList')
+    self.list = context.view.fgui:resolve('panel.logList')
     self.list.itemRenderer = function (idx, item)
         idx = idx + 1
         if item.customData == self.maxIndex and item.customData ~= idx then
@@ -23,14 +23,14 @@ function LogCat:ctor(context)
     end
     self.list.virtual = true
 
-    local btnClear = context.view:resolve('panel.btnClear')
+    local btnClear = context.view.fgui:resolve('panel.btnClear')
     btnClear:addClickListener(function ()
         self.logs:clear()
         self.maxIndex = 0
         self.list.numItems = #self.logs
     end)
 
-    local btnSend = context.view:resolve('panel.btnSend')
+    local btnSend = context.view.fgui:resolve('panel.btnSend')
     btnSend:addClickListener(function ()
         print('todo: handle cmd')
     end)

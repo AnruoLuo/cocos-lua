@@ -7,7 +7,6 @@ local include = M.include
 
 M.PATH = '../../frameworks/libxgame/src/lua-bindings'
 M.INCLUDES = [[
-#include "lua-bindings/lua_cocos2d.h"
 #include "lua-bindings/lua_conv.h"
 #include "lua-bindings/lua_conv_manual.h"
 #include "lua-bindings/LuaCocosAdapter.h"
@@ -45,20 +44,21 @@ typeconf 'cocos2d::MATRIX_STACK_TYPE'
 typeconf 'cocos2d::Director::Projection'
 
 typeconf 'cocos2d::UserDefault'
-    .EXCLUDE 'setDelegate'
+    .EXCLUDE_FUNC 'setDelegate'
 
     
 typeconf 'cocos2d::Ref'
-    .EXCLUDE 'retain'
-    .EXCLUDE 'release'
-    .EXCLUDE 'autorelease'
+    .EXCLUDE_FUNC 'retain'
+    .EXCLUDE_FUNC 'release'
+    .EXCLUDE_FUNC 'autorelease'
     .FUNC('__gc', '{\n    return xlua_ccobjgc(L);\n}')
     
 typeconf 'cocos2d::Console'
 typeconf 'cocos2d::Acceleration'
 
 local Director = typeconf 'cocos2d::Director'
-Director.EXCLUDE 'getCocos2dThreadId'
+Director.EXCLUDE_FUNC 'getCocos2dThreadId'
+Director.ALIAS('end', 'exit')
 Director.ATTR('getRunningScene', {RET = '@addref(scenes |)'})
 Director.ATTR('runWithScene', {ARG1 = '@addref(scenes |)'})
 Director.ATTR('pushScene', {ARG1 = '@addref(scenes |)'})
@@ -82,7 +82,7 @@ Director.ATTR('setActionManager', {ARG1 = '@addref(actionManager ^)'})
 Director.ATTR('getRenderer', {RET = '@addref(renderer ^)'})
 
 local Scheduler = typeconf 'cocos2d::Scheduler'
-Scheduler.EXCLUDE 'performFunctionInCocosThread'
+Scheduler.EXCLUDE_FUNC 'performFunctionInCocosThread'
 Scheduler.CHUNK = [[
 template <typename T> bool doScheduleUpdate(lua_State *L)
 {
@@ -144,7 +144,7 @@ EventDispatcher.ATTR('addEventListenerWithSceneGraphPriority', {ARG1 = '@addref(
 EventDispatcher.ATTR('addEventListenerWithFixedPriority', {ARG1 = '@addref(listeners |)'})
 EventDispatcher.ATTR('addCustomEventListener', {RET = '@addref(listeners |)'})
 EventDispatcher.ATTR('removeCustomEventListeners', {RET = '@delref(listeners ~)'})
-EventDispatcher.ATTR('removeEventListener', {RET = '@delref(listeners ~)'})
+EventDispatcher.ATTR('removeEventListener', {RET = '@delref(listeners ~)', ARG1 = '@delref(listeners |)'})
 EventDispatcher.ATTR('removeEventListenersForType', {RET = '@delref(listeners ~)'})
 EventDispatcher.ATTR('removeAllEventListeners', {RET = '@delref(listeners ~)'})
 EventDispatcher.CALLBACK {
@@ -168,7 +168,7 @@ static void doRemoveEventListenersForTarget(lua_State *L, cocos2d::Node *target,
         }
     }
 }]]
-EventDispatcher.INJECT('removeEventListenersForTarget', {
+EventDispatcher.INSERT('removeEventListenersForTarget', {
     BEFORE = [[
         bool recursive = false;
         auto node = olua_checkobj<cocos2d::Node>(L, 2);
@@ -182,7 +182,7 @@ EventDispatcher.INJECT('removeEventListenersForTarget', {
 typeconf 'cocos2d::EventListener::Type'
 
 typeconf 'cocos2d::EventListener'
-    .EXCLUDE 'init'
+    .EXCLUDE_FUNC 'init'
     .PROP('available', 'bool checkAvailable()')
 
 typeconf 'cocos2d::EventListenerTouchOneByOne'
@@ -229,7 +229,7 @@ typeconf 'cocos2d::Touch'
 typeconf 'cocos2d::Controller::Key'
 
 typeconf 'cocos2d::Controller'
-    .EXCLUDE 'receiveExternalKeyEvent'
+    .EXCLUDE_FUNC 'receiveExternalKeyEvent'
 
 typeconf 'cocos2d::AudioProfile'
 typeconf 'cocos2d::AudioEngine::AudioState'
@@ -262,14 +262,14 @@ static const std::string makeAudioEngineFinishCallbackTag(lua_Integer id)
         return std::string(buf);
     }
 }]]
-AudioEngine.INJECT('uncache', {
+AudioEngine.INSERT('uncache', {
     BEFORE = [[
         std::string path = olua_checkstring(L, 1);
         std::list<int> ids = cocos2d::LuaAudioEngine::getAudioIDs(path);
-        void *self_obj = olua_pushclassobj<cocos2d::AudioEngine>(L);
+        void *cb_store = olua_pushclassobj<cocos2d::AudioEngine>(L);
         for (auto id : ids) {
             std::string tag = makeAudioEngineFinishCallbackTag((lua_Integer)id);
-            olua_removecallback(L, self_obj, tag.c_str(), OLUA_TAG_SUBEQUAL);
+            olua_removecallback(L, cb_store, tag.c_str(), OLUA_TAG_SUBEQUAL);
         }
     ]]
 })
@@ -304,11 +304,11 @@ typeconf 'cocos2d::LanguageType'
 typeconf 'cocos2d::ApplicationProtocol'
 
 typeconf 'cocos2d::Application'
-    .EXCLUDE 'setStartupScriptFilename'
-    .EXCLUDE 'applicationScreenSizeChanged'
+    .EXCLUDE_FUNC 'setStartupScriptFilename'
+    .EXCLUDE_FUNC 'applicationScreenSizeChanged'
 
 typeconf 'cocos2d::Device'
-    .EXCLUDE 'getTextureDataForText'
+    .EXCLUDE_FUNC 'getTextureDataForText'
 
 typeconf 'cocos2d::ResizableBuffer'
 typeconf 'cocos2d::FileUtils::Status'
@@ -336,9 +336,9 @@ typeconf 'ResolutionPolicy'
 typeconf 'cocos2d::GLView'
 
 typeconf 'cocos2d::GLViewImpl'
-    .EXCLUDE 'create'
-    .EXCLUDE 'createWithRect'
-    .EXCLUDE 'createWithFullScreen'
+    .EXCLUDE_FUNC 'create'
+    .EXCLUDE_FUNC 'createWithRect'
+    .EXCLUDE_FUNC 'createWithFullScreen'
 
 typeconf 'cocos2d::Image::Format'
 
@@ -372,7 +372,7 @@ typeonly 'cocos2d::RenderState'
 typeconf 'cocos2d::RenderCommand'
 typeconf 'cocos2d::CustomCommand'
 typeconf 'cocos2d::MeshCommand'
-    .EXCLUDE 'listenRendererRecreated'
+    .EXCLUDE_FUNC 'listenRendererRecreated'
 
 local TextureCache = typeconf 'cocos2d::TextureCache'
 TextureCache.CHUNK = [[
@@ -447,8 +447,7 @@ end
 
 -- node
 local Node = typeconf 'cocos2d::Node'
-Node.EXCLUDE 'scheduleUpdateWithPriorityLua'
-Node.EXCLUDE 'enumerateChildren' -- TODO
+Node.EXCLUDE_FUNC 'scheduleUpdateWithPriorityLua'
 Node.ATTR('addChild', {ARG1 = '@addref(children |)'})
 Node.ATTR('getChildByTag', {RET = '@addref(children |)'})
 Node.ATTR('getChildByName', {RET = '@addref(children |)'})
@@ -502,10 +501,10 @@ Node.FUNC('getBounds', [[
     auto self = olua_checkobj<cocos2d::Node>(L, 1);
     auto target = olua_checkobj<cocos2d::Node>(L, 2);
 
-    float left = luaL_checknumber(L, 3);
-    float right = luaL_checknumber(L, 4);
-    float top = luaL_checknumber(L, 5);
-    float bottom = luaL_checknumber(L, 6);
+    float left = (float)luaL_checknumber(L, 3);
+    float right = (float)luaL_checknumber(L, 4);
+    float top = (float)luaL_checknumber(L, 5);
+    float bottom = (float)luaL_checknumber(L, 6);
 
     cocos2d::Vec3 p1(left, bottom, 0);
     cocos2d::Vec3 p2(right, top, 0);
@@ -556,7 +555,7 @@ Node.PROP('anchorX', [[
 {
     auto self = olua_toobj<cocos2d::Node>(L, 1);
     cocos2d::Vec2 anchor = self->getAnchorPoint();
-    anchor.x = olua_checknumber(L, 2);
+    anchor.x = (float)olua_checknumber(L, 2);
     self->setAnchorPoint(anchor);
     return 0;
 }]])
@@ -570,7 +569,7 @@ Node.PROP('anchorY', [[
 {
     auto self = olua_toobj<cocos2d::Node>(L, 1);
     cocos2d::Vec2 anchor = self->getAnchorPoint();
-    anchor.y = olua_checknumber(L, 2);
+    anchor.y = (float)olua_checknumber(L, 2);
     self->setAnchorPoint(anchor);
     return 0;
 }]])
@@ -584,7 +583,7 @@ Node.PROP('width', [[
 {
     auto self = olua_toobj<cocos2d::Node>(L, 1);
     cocos2d::Size size = self->getContentSize();
-    size.width = olua_checknumber(L, 2);
+    size.width = (float)olua_checknumber(L, 2);
     self->setContentSize(size);
     return 0;
 }]])
@@ -598,7 +597,7 @@ Node.PROP('height', [[
 {
     auto self = olua_toobj<cocos2d::Node>(L, 1);
     cocos2d::Size size = self->getContentSize();
-    size.height = olua_checknumber(L, 2);
+    size.height = (float)olua_checknumber(L, 2);
     self->setContentSize(size);
     return 0;
 }]])
@@ -611,7 +610,7 @@ Node.PROP('alpha', [[
 ]], [[
 {
     auto self = olua_toobj<cocos2d::Node>(L, 1);
-    self->setOpacity(olua_checknumber(L, 2) * 255.0f);
+    self->setOpacity((uint8_t)(olua_checknumber(L, 2) * 255.0f));
     return 0;
 }]])
 Node.CALLBACK {NAME = 'setOnEnterCallback', NULLABLE = true}
@@ -643,7 +642,12 @@ Node.CALLBACK {
     TAG_MAKER = 'makeScheduleCallbackTag("")',
     TAG_MODE = "OLUA_TAG_SUBSTARTWITH",
 }
-Node.INJECT({'removeFromParent', 'removeFromParentAndCleanup'}, {
+Node.CALLBACK {
+    NAME = 'enumerateChildren',
+    TAG_MODE = 'OLUA_TAG_NEW',
+    TAG_SCOPE = 'function',
+}
+Node.INSERT({'removeFromParent', 'removeFromParentAndCleanup'}, {
     BEFORE = [[
         if (!self->getParent()) {
             return 0;
@@ -687,8 +691,8 @@ typeconf 'cocos2d::Label'
 typeconf 'cocos2d::LabelAtlas'
 
 typeconf 'cocos2d::FontAtlas'
-    .EXCLUDE 'getTextures'
-    .EXCLUDE 'prepareLetterDefinitions'
+    .EXCLUDE_FUNC 'getTextures'
+    .EXCLUDE_FUNC 'prepareLetterDefinitions'
 
 typeconf 'cocos2d::ClippingRectangleNode'
 
@@ -723,9 +727,9 @@ typeconf 'cocos2d::SpriteBatchNode'
 typeconf 'cocos2d::SpriteFrameCache'
 typeconf 'cocos2d::AnimationCache'
 
-local Scene = typeconf 'cocos2d::Scene'
-Scene.ATTR('getPhysicsWorld', {RET = '@addref(physicsWorld ^)'})
-Scene.ATTR('getPhysics3DWorld', {RET = '@addref(physics3DWorld ^)'})
+typeconf 'cocos2d::Scene'
+    .ATTR('getPhysicsWorld', {RET = '@addref(physicsWorld ^)'})
+    .ATTR('getPhysics3DWorld', {RET = '@addref(physics3DWorld ^)'})
 
 typeconf 'cocos2d::Layer'
 typeconf 'cocos2d::LayerColor'
@@ -737,13 +741,13 @@ typeconf 'cocos2d::TransitionScene::Orientation'
 
 local function typeconfTransition(name)
     local cls = typeconf(name)
-    cls.ATTR('create', {ARG2 = '@addref(autoref |)'})
+    cls.ATTR('create', {ARG2 = '@addref(scenes |)'})
     cls.ATTR('easeActionWithAction', {ARG1 = '@addref(action ^)'})
     return cls
 end
 
-local TransitionScene = typeconfTransition 'cocos2d::TransitionScene'
-TransitionScene.EXCLUDE 'initWithDuration'
+typeconfTransition 'cocos2d::TransitionScene'
+    .EXCLUDE_FUNC 'initWithDuration'
 
 typeconfTransition 'cocos2d::TransitionSceneOriented'
 typeconfTransition 'cocos2d::TransitionRotoZoom'
@@ -795,8 +799,8 @@ typeconf 'cocos2d::CameraFlag'
 typeconf 'cocos2d::Camera::Type'
 
 typeconf 'cocos2d::Camera'
-    .EXCLUDE 'isVisibleInFrustum'
-    .EXCLUDE 'setFrameBufferObject'
+    .EXCLUDE_FUNC 'isVisibleInFrustum'
+    .EXCLUDE_FUNC 'setFrameBufferObject'
 
 typeconf 'cocos2d::CameraBackgroundBrush::BrushType'
 typeconf 'cocos2d::CameraBackgroundBrush'

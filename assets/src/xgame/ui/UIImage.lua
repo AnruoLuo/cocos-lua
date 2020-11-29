@@ -1,8 +1,8 @@
 local class             = require "xgame.class"
-local assetloader       = require "xgame.assetloader"
+local loader            = require "xgame.loader"
 local filesystem        = require "xgame.filesystem"
 local Event             = require "xgame.event.Event"
-local LoadTask          = require "xgame.loader.LoadTask"
+local LoadTask          = require "xgame.LoadTask"
 local UIView            = require "xgame.ui.UIView"
 local ImageView         = require "ccui.ImageView"
 local TextureResType    = require "ccui.Widget.TextureResType"
@@ -27,14 +27,12 @@ end
 
 function UIImage:unload()
     self.filePath = false
-    assetloader.unload(self)
 end
 
 function UIImage:loadTexture(path)
     self.filePath = path
 
     if filesystem.exist(path) then
-        assetloader.load(self, {[path] = true})
         self.cobj:loadTexture(path, TextureResType.LOCAL)
     else
         assert(spriteFrameCache:getSpriteFrameByName(path), path)
@@ -48,27 +46,27 @@ function UIImage:loadTexture(path)
 end
 
 function UIImage:_doLoad(url, callback)
-    local loader = LoadTask.new(url)
-    self.filePath = loader.path
-    loader:addListener(Event.COMPLETE, function ()
-        if self.filePath == loader.path then
-            callback(filesystem.localCachePath(url))
-        end
-    end)
-    loader:start()
-end
-
-function UIImage:load(filepath)
-    self:_doLoad(filepath, function (path)
-        self:loadTexture(path)
-    end)
-end
-
-function UIImage:loadAsync(filepath)
-    self:_doLoad(filepath, function (path)
-        assetloader.loadAsync(self, {[path] = true}, function ()
-            self:loadTexture(path)
+    if url and #url > 0 then
+        self._url = url
+        self.assetRef = loader.load(url, function (success)
+            if self._url == url and success then
+                callback()
+            end
         end)
+    end
+end
+
+function UIImage:load(url)
+    self:_doLoad(function ()
+        self:loadTexture(filesystem.localCachePath(url))
+        self:validateDisplay()
+    end)
+end
+
+function UIImage:loadAsync(url)
+    self:_doLoad(function ()
+        self:loadTexture(filesystem.localCachePath(url))
+        self:validateDisplay()
     end)
 end
 

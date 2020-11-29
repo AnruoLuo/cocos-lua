@@ -3,16 +3,12 @@ local M = autoconf.typemod 'conv'
 local typeconv = M.typeconv
 
 M.PATH = "../../frameworks/libxgame/src/lua-bindings"
-M.HEADER_INCLUDES = [[
+M.INCLUDES = [[
 #include "xgame/xlua.h"
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
 #include "network/WebSocket.h"
 #include "navmesh/CCNavMesh.h"
-]]
-
-M.INCLUDES = [[
-#include "lua-bindings/lua_conv.h"
 ]]
 
 M.MAKE_LUACLS = function ()
@@ -32,6 +28,7 @@ typeconv 'cocos2d::AffineTransform'
 typeconv 'GLContextAttrs'
 typeconv 'cocos2d::Tex2F'
 typeconv 'cocos2d::T2F_Quad'
+typeconv 'cocos2d::ccBezierConfig'
 
 typeconv 'cocos2d::TTFConfig'
     .ATTR('*', {OPTIONAL = true})
@@ -49,12 +46,13 @@ typeconv 'cocos2d::backend::BlendDescriptor'
 typeconv 'cocos2d::backend::SamplerDescriptor'
 
 typeconv 'cocos2d::backend::TextureInfo'
-    .EXCLUDE 'location'
+    .EXCLUDE_FUNC 'location'
 
 typeconv 'cocos2d::backend::AttributeBindInfo'
 typeconv 'cocos2d::backend::UniformInfo'
 typeconv 'cocos2d::backend::TextureDescriptor'
 typeconv 'cocos2d::backend::StencilDescriptor'
 typeconv 'cocos2d::backend::DepthStencilDescriptor'
+typeconv 'cocos2d::backend::VertexLayout::Attribute'
 
 return M

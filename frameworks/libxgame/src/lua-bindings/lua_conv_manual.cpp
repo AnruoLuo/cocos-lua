@@ -24,6 +24,11 @@ int manual_olua_check_cocos2d_Data(lua_State *L, int idx, cocos2d::Data *value)
     return 0;
 }
 
+int manual_olua_is_cocos2d_Data(lua_State *L, int idx)
+{
+    return olua_isstring(L, idx);
+}
+
 int manual_olua_push_cocos2d_Mat4(lua_State *L, const cocos2d::Mat4 *value)
 {
     if (!value) {
@@ -126,6 +131,11 @@ bool manual_olua_is_cocos2d_Color4F(lua_State *L, int idx)
     return olua_isinteger(L, idx);
 }
 
+bool manual_olua_is_cocos2d_Vector(lua_State *L, int idx)
+{
+    return olua_istable(L, idx);
+}
+
 bool manual_olua_is_cocos2d_Mat4(lua_State *L, int idx)
 {
     if (lua_istable(L, idx) && lua_rawlen(L, idx) == 16) {
@@ -183,10 +193,10 @@ void manual_olua_pack_cocos2d_Rect(lua_State *L, int idx, cocos2d::Rect *value)
         luaL_error(L, "value is NULL");
     }
     idx = lua_absindex(L, idx);
-    value->origin.x = (int)olua_checkinteger(L, idx + 0);
-    value->origin.y = (int)olua_checkinteger(L, idx + 1);
-    value->size.width = (int)olua_checkinteger(L, idx + 2);
-    value->size.height = (int)olua_checkinteger(L, idx + 3);
+    value->origin.x = (float)olua_checknumber(L, idx + 0);
+    value->origin.y = (float)olua_checknumber(L, idx + 1);
+    value->size.width = (float)olua_checknumber(L, idx + 2);
+    value->size.height = (float)olua_checknumber(L, idx + 3);
 }
 
 int manual_olua_unpack_cocos2d_Rect(lua_State *L, const cocos2d::Rect *value)
@@ -211,30 +221,6 @@ bool manual_olua_is_cocos2d_Rect(lua_State *L, int idx)
         && olua_hasfield(L, idx, "width")
         && olua_hasfield(L, idx, "y")
         && olua_hasfield(L, idx, "x");
-}
-
-void manual_olua_pack_cocos2d_ccBezierConfig(lua_State *L, int idx, cocos2d::ccBezierConfig *value)
-{
-    if (!value) {
-        luaL_error(L, "value is NULL");
-    }
-    idx = lua_absindex(L, idx);
-    auto_olua_check_cocos2d_Vec2(L, idx + 0, &(value->controlPoint_1));
-    auto_olua_check_cocos2d_Vec2(L, idx + 1, &(value->controlPoint_2));
-    auto_olua_check_cocos2d_Vec2(L, idx + 2, &(value->endPosition));
-}
-
-void manual_olua_check_cocos2d_ccBezierConfig(lua_State *L, int idx, cocos2d::ccBezierConfig *value)
-{
-    if (!value) {
-        luaL_error(L, "value is NULL");
-    }
-    idx = lua_absindex(L, idx);
-    olua_rawgetf(L, idx, "controlPoint_1");
-    olua_rawgetf(L, idx, "controlPoint_2");
-    olua_rawgetf(L, idx, "endPosition");
-    manual_olua_pack_cocos2d_ccBezierConfig(L, idx + 1, value);
-    lua_pop(L, 3);
 }
 
 bool manual_olua_is_cocos2d_Value(lua_State *L, int idx)
@@ -334,7 +320,7 @@ int manual_olua_push_cocos2d_ValueVector(lua_State *L, const cocos2d::ValueVecto
     if (value) {
         lua_createtable(L, (int)value->size(), 0);
         int idx = 1;
-        for (int i = 0; i < value->size(); i++) {
+        for (int i = 0; i < (int)value->size(); i++) {
             const auto v = value->at(i);
             if (manual_olua_push_cocos2d_Value(L, &v) > 0) {
                 lua_rawseti(L, -2, idx++);
